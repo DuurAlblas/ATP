@@ -1,0 +1,45 @@
+====================================
+C++
+====================================
+bool even(unsigned int n);
+bool odd(unsigned int n);
+
+bool odd(unsigned int n){
+    if(n==0){return false;}
+    return even(n-1);
+}
+
+bool even(unsigned int n){
+    if(n==0){return true;}
+    return odd(n-1);
+}
+====================================
+This=That3.0++
+return :: jumps back to last call point with return value in R0
+var=start :: start a function and put return val in var
+====================================
+inputVal=input                      [get value to evaluate from user]
+function odd=n                      [make function odd pass var n]
+    if loop e=n~~0                  [if n equals 0]
+        return=0                    [return false]
+    if loop e=end                   [end if]
+    n=n minus 1                     [n--]
+    return start function even n    [call even pass var n]
+end function odd                    [end odd function]
+function even=n                     [make function even pass var n]
+    if loop o=n~~0                  [if n equals 0]
+        return=1                    [return true]
+    if loop o=end                   [end if]
+    n=n minus 1                     [n--]
+    return start function odd n     [call odd pass var n]
+end function even                   [end even function]
+isEven=start function even inputVal [call even pass var inputVal put return in isEven]
+isEven=print                        [print isEven]
+====================================
+Main example
+====================================
+with open("code") as f:
+    text = f.read()
+tokens = lexer.lex(text)
+ast = parser.parse(tokens)
+execute(ast)
