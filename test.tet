@@ -1,0 +1,11 @@
+inputVal = input
+function sommig = n
+    result = 0
+    while sum = n > 0
+        result = result plus n
+        n = n minus 1
+    end while sum
+    return = result
+end function sommig
+sumResult = start function sommig inputVal
+sumResult = print
