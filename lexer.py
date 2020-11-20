@@ -1,17 +1,29 @@
+from enum import Enum
 from typing import List
 import re
 
-TOKEN_TYPES = {
-    'OPERATORS': ['plus','minus','divide','times', '='],
-    'CONDITIONS' : ['<','>','~','~<','~>','~~'],
-    'input' : 'INPUT',
-    'print' : 'PRINT',
-    'function' : 'FUNCTION',
-    'if' : 'IF',
-    'while' : 'WHILE',
-    'start' : 'START',
-    'end' : 'END'
-}
+class TokenTypes(Enum):
+    PLUS='plus'
+    MINUS='minus'
+    DIVIDE='divide'
+    TIMES='times'
+    ASSIGN='='
+    SMALLER='<'
+    GREATER='>'
+    NOT_EQUAL='~'
+    NOT_SMALLER='~<'
+    NOT_GREATER='~>'
+    EQUAL='~~'
+    INPUT='input'
+    PRINT='print'
+    FUNCTION='function'
+    IF='if'
+    WHILE='while'
+    START='start'
+    END='end'
+    INTEGER='[0-9]'
+    STRING='".*"'
+    VARIABLE='[a-zA-Z]'
 
 class Token():
     def __init__(self, value, type):
@@ -44,16 +56,48 @@ class Lexer():
     def __get_token(self, word : str) -> Token:
         type = None
         try:
-            if word in TOKEN_TYPES['OPERATORS']:
-                type = 'OPERATOR'
-            elif word in TOKEN_TYPES['CONDITIONS']:
-                type = 'CONDITION'
-            elif word in TOKEN_TYPES:
-                type = TOKEN_TYPES[word]
-            elif re.match('[0-9]', word):
-                type = 'INTEGER'
-            elif re.match('[a-z]', word) or re.match('[A-Z]', word):
-                type = 'VARIABLE'
+            if word == TokenTypes.PLUS.value:
+                type = TokenTypes.PLUS.name
+            elif word == TokenTypes.MINUS.value:
+                type = TokenTypes.MINUS.name
+            elif word == TokenTypes.DIVIDE.value:
+                type =  TokenTypes.DIVIDE.name
+            elif word == TokenTypes.TIMES.value:
+                type = TokenTypes.TIMES.name
+            elif word == TokenTypes.ASSIGN.value:
+                type = TokenTypes.ASSIGN.name
+            elif word == TokenTypes.SMALLER.value:
+                type = TokenTypes.SMALLER.name
+            elif word == TokenTypes.GREATER.value:
+                type = TokenTypes.GREATER.name
+            elif word == TokenTypes.NOT_EQUAL.value:
+                type = TokenTypes.NOT_EQUAL.name
+            elif word == TokenTypes.NOT_SMALLER.value:
+                type = TokenTypes.NOT_SMALLER.name
+            elif word == TokenTypes.NOT_GREATER.value:
+                type =  TokenTypes.NOT_GREATER.name
+            elif word == TokenTypes.EQUAL.value:
+                type = TokenTypes.EQUAL.name
+            elif word == TokenTypes.INPUT.value:
+                type = TokenTypes.INPUT.name
+            elif word == TokenTypes.PRINT.value:
+                type = TokenTypes.PRINT.name
+            elif word == TokenTypes.FUNCTION.value:
+                type = TokenTypes.FUNCTION.name
+            elif word == TokenTypes.IF.value:
+                type = TokenTypes.IF.name
+            elif word == TokenTypes.WHILE.value:
+                type = TokenTypes.WHILE.name
+            elif word == TokenTypes.START.value:
+                type = TokenTypes.START.name
+            elif word == TokenTypes.END.value:
+                type = TokenTypes.END.name
+            elif re.match(TokenTypes.INTEGER.value, word):
+                type = TokenTypes.INTEGER.name
+            elif re.match(TokenTypes.STRING.value, word):
+                type = TokenTypes.STRING.name
+            elif re.match(TokenTypes.VARIABLE.value, word):
+                type = TokenTypes.VARIABLE.name
 
             if type == None:
                 raise TypeError(word)

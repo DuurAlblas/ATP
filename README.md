@@ -5,14 +5,14 @@ De taal die ik heb gekozen is This=That(3.0++). Ik ga de diverse versies (1.0, 2
 
 ### Afspraken
 Elke lijn code is in principe een case-sensitive variable naam gevolgd door een `=` en dan een case-sensitive waarde.
-Het is belangrijk dat er spaties tussen de diverse keywords en operators in staan. Executie van de code begint bij de eerste lijn code en zal van boven naar beneden door de lijnen code heengaan. Als een variable een nieuwe waarde krijgt toegewezen zal de variable ook daadwerkelijk die waarde krijgen en niet een formule. Met andere woorden als een variable `x minus 2` krijgt toegewezen wordt de daadwerkelijke waarde op dat moment toegewezen en niet de formule.
+Het is belangrijk dat er spaties tussen de diverse keywords en operators in staan. Strings moeten worden encased in `"` en mogen geen spaties bevatten. Executie van de code begint bij de eerste lijn code en zal van boven naar beneden door de lijnen code heengaan. Als een variable een nieuwe waarde krijgt toegewezen zal de variable ook daadwerkelijk die waarde krijgen en niet een formule. Met andere woorden als een variable `x minus 2` krijgt toegewezen wordt de daadwerkelijke waarde op dat moment toegewezen en niet de formule.
 
 ### Keywords
 |Keyword|Uitleg|
 |---|---|
 |`print`|Print de waarde van de variable naar de STDOUT. Ex: `x = print`|
 |`input`|Ken een waarde van de STDIN toe aan een variable. Ex: `x = input`|
-|`plus`,`minus`,`divide`,`times`| Voor wiskunde. Ex: </br> `x = 4` </br> `y = x minus 2` </br> Dit geeft `x` de waarde `4` en daarna `y` `2` (4-2). Bij strings werkt het als volgt: </br> `fruit = fly` </br> `printer = paper` </br> `sticky = fruit plus printer` </br> Geef `fruit` de waarde `fly`, `printer` de waarde `paper` en dan krijgt `sticky` de waarde flypaper (wordmath werkt alleen met plus).|
+|`plus`,`minus`,`divide`,`times`| Voor wiskunde. Ex: </br> `x = 4` </br> `y = x minus 2` </br> Dit geeft `x` de waarde `4` en daarna `y` `2` (4-2). Bij strings werkt het als volgt: </br> `fruit = "fly"` </br> `printer = "paper"` </br> `sticky = fruit plus printer` </br> Geef `fruit` de waarde `"fly"`, `printer` de waarde `"paper"` en dan krijgt `sticky` de waarde `"flypaper"` (wordmath werkt alleen met plus).|
 |`if x =`*`condition`*|Start een `if` statement genaamd `x` met een gegeven conditie|
 |`while x =`*`condition`*|Start een `while` loop genaamd `x` met een gegeven conditie|
 |`end if x` `end while x`|Eindigt een `if`/`while` loop genaamd `x`|

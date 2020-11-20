@@ -1,4 +1,5 @@
 import lexer
+import parser
 
 def readFile(filename: str) -> str:
     with open(filename) as file:
