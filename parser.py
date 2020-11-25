@@ -19,25 +19,25 @@ class Visitor():
     def visitBinary(self, binaryExpr):
         if binaryExpr.operator == lexer.TokenTypes.PLUS.name:
             return binaryExpr.left.visit(self) + binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.MINUS:
+        elif binaryExpr.operator == lexer.TokenTypes.MINUS.name:
             return binaryExpr.left.visit(self) - binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.TIMES:
+        elif binaryExpr.operator == lexer.TokenTypes.TIMES.name:
             return binaryExpr.left.visit(self) * binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.DIVIDE:
+        elif binaryExpr.operator == lexer.TokenTypes.DIVIDE.name:
             return binaryExpr.left.visit(self) / binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.EQUAL:
+        elif binaryExpr.operator == lexer.TokenTypes.EQUAL.name:
             return binaryExpr.left.visit(self) == binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.GREATER:
+        elif binaryExpr.operator == lexer.TokenTypes.GREATER.name:
             return binaryExpr.left.visit(self) > binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.SMALLER:
+        elif binaryExpr.operator == lexer.TokenTypes.SMALLER.name:
             return binaryExpr.left.visit(self) < binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.NOT_EQUAL:
+        elif binaryExpr.operator == lexer.TokenTypes.NOT_EQUAL.name:
             return binaryExpr.left.visit(self) != binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.NOT_GREATER:
+        elif binaryExpr.operator == lexer.TokenTypes.NOT_GREATER.name:
             return not (binaryExpr.left.visit(self) > binaryExpr.right.visit(self))
-        elif binaryExpr.operator == lexer.TokenTypes.NOT_SMALLER:
+        elif binaryExpr.operator == lexer.TokenTypes.NOT_SMALLER.name:
             return not (binaryExpr.left.visit(self) < binaryExpr.right.visit(self))
-        elif binaryExpr.operator == lexer.TokenTypes.ASSIGN:
+        elif binaryExpr.operator == lexer.TokenTypes.ASSIGN.name:
             if isinstance(binaryExpr.right,(Print)):
                 binaryExpr.right.execute(binaryExpr.left.visit(self), self)
             elif isinstance(binaryExpr.left, (Variable)):
@@ -319,7 +319,7 @@ class Parser():
                 if not prime_var:
                     print("THROW ERROR UNKNOWN VARIABLE CANT PRINT")
                 current_head = 3
-                return Binary(prime_var.value, lexer.TokenTypes.ASSIGN, Print()), current_head, variables
+                return Binary(prime_var.value, lexer.TokenTypes.ASSIGN.name, Print()), current_head, variables
 
             else:
 

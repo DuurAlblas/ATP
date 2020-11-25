@@ -1,5 +1,3 @@
 n = 1
-m = n plus 2
-henk = "woord"
+m = n plus 22
 m = print
-henk = print
