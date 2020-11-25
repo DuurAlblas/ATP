@@ -21,6 +21,7 @@ class TokenTypes(Enum):
     WHILE='while'
     START='start'
     END='end'
+    RETURN='return'
     INTEGER='[0-9]'
     STRING='".*"'
     VARIABLE='[a-zA-Z]'

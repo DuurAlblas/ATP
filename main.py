@@ -8,16 +8,22 @@ def readFile(filename: str) -> str:
 def main():
     code_lines = readFile("code.tet")
     lex = lexer.Lexer(code_lines)
-    print(lex.tokenize())
+    # print(lex.tokenize())
 
-    print("=========================")
+    # print("=========================")
 
-    i_visit = parser.Visitor()
+    # i_visit = parser.Visitor()
 
-    var_n = parser.Variable('n', parser.Literal(1))
-    var_m = parser.Variable('m', parser.Binary(var_n,lexer.TokenTypes.PLUS, parser.Literal(22)))
-    key_print = parser.Binary(var_m, lexer.TokenTypes.ASSIGN, parser.Print())
+    # var_n = parser.Variable('n', parser.Literal(1))
+    # var_m = parser.Variable('m', parser.Binary(var_n,lexer.TokenTypes.PLUS, parser.Literal(22)))
+    # key_print = parser.Binary(var_m, lexer.TokenTypes.ASSIGN, parser.Print())
 
-    key_print.visit(i_visit)
+    # key_print.visit(i_visit)
+
+    # print("=========================")
+
+    parse = parser.Parser(lex)
+    ast = parse.parse()
+    parse.run(ast)
 
 main()
