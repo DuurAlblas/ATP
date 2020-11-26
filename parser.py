@@ -1,22 +1,27 @@
-from typing import TypeVar, List
+from typing import TypeVar, List, Union, Tuple
 from enum import Enum
-import abc
+import abc, copy
 import lexer
+
+class Node():
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def visit(self, visitor):
+        pass
 
 # Visitor class is used to execute code thats applicable to the type of expresion thats currently being "visited"
 class Visitor():
-    def visitLiteral(self, literalExpr):
-        # print("Visited Lit : ", literalExpr.value)
+    def visitLiteral(self, literalExpr) -> Union[str,int]:
         return literalExpr.value
 
-    def visitVariable(self, variableExpr):
-        # print("Visited Var : ",variableExpr.name, " | ", variableExpr.value)
+    def visitVariable(self, variableExpr) -> Node:
         return variableExpr.value.visit(self)
 
     def visitFunctionCall(self, funcExpr):
         return
 
-    def visitBinary(self, binaryExpr):
+    def visitBinary(self, binaryExpr)-> Union[str, int, bool]:
         if binaryExpr.operator == lexer.TokenTypes.PLUS.name:
             return binaryExpr.left.visit(self) + binaryExpr.right.visit(self)
         elif binaryExpr.operator == lexer.TokenTypes.MINUS.name:
@@ -41,7 +46,7 @@ class Visitor():
             if isinstance(binaryExpr.right,(Print)):
                 binaryExpr.right.execute(binaryExpr.left.visit(self), self)
             elif isinstance(binaryExpr.left, (Variable)):
-                binaryExpr.left.value = Literal(binaryExpr.right.visit(self))
+                binaryExpr.left.value = binaryExpr.right.visit(self)
 
     def visitIfStatement(self, ifExpr):
         return
@@ -49,15 +54,8 @@ class Visitor():
     def visitWhileStatement(self, whileExpr):
         return
 
-    def visitPrint(self, printExpr):
+    def visitPrint(self, printExpr) -> None:
         print(printExpr.value)
-
-class Node():
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def visit(self, visitor : Visitor):
-        return
 
 LitType = TypeVar('LitType', int, str)
 
@@ -66,33 +64,33 @@ class Literal(Node):
     def __init__(self,value : LitType):
         self.value = value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Literal({value})'.format(
             value = self.value.__repr__()
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, visitor : Visitor):
+    def visit(self, visitor : Visitor) -> Node:
         return visitor.visitLiteral(self)
 
 # Variable class for creating a variable based on a literal value
 class Variable(Node):
     def __init__(self, name : str, value = Literal(0)):
         self.name = name
-        self.value = value
+        self.value = copy.copy(value)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Variable({name},{value})'.format(
             name = self.name,
             value = self.value.__repr__()
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, visitor : Visitor):
+    def visit(self, visitor : Visitor) -> Node:
         return visitor.visitVariable(self)
 
 FunctionType = TypeVar('FunctionType', Variable, Literal)
@@ -104,17 +102,17 @@ class FunctionCall(Node):
         self.args = args
         self.body = body
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Function({name},{args},{body})'.format(
             name = self.name,
             args = self.args,
             body = self.body
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, visitor : Visitor):
+    def visit(self, visitor : Visitor) -> Node:
         return visitor.visitFunctionCall(self)
 
 LeftBinaryType = TypeVar('LeftBinaryType', Variable, Literal)
@@ -123,21 +121,21 @@ RightBinaryType = TypeVar('RightBinaryType', Variable, Literal, FunctionCall)
 # Binary class for applying operators on Literals, Variables and on the right side FunctionCalls
 class Binary(Node):
     def __init__(self,left : LeftBinaryType , operator ,right : RightBinaryType):
-        self.left = left
+        self.left = copy.copy(left)
         self.operator = operator
-        self.right = right
+        self.right = copy.copy(right)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Binary({left},{operator},{right})'.format(
             left = self.left,
             operator = self.operator,
             right = self.right
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, visitor : Visitor):
+    def visit(self, visitor : Visitor) -> Node:
         return visitor.visitBinary(self)
 
 # IfStatement class for a body of code that will be executed once based on a condition
@@ -146,16 +144,16 @@ class IfStatement(Node):
         self.condition = condition
         self.body = body
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'If({condition},{body})'.format(
             condition = self.condition,
             body = self.body
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, visitor : Visitor):
+    def visit(self, visitor : Visitor) -> Node:
         return visitor.visitIfStatement(self)
 
 # WhileStatement class for a body of code that will be exectued as long as the condition is met
@@ -164,16 +162,16 @@ class WhileStatement(Node):
         self.condition = condition
         self.body = body
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'While({condition},{body})'.format(
             condition = self.condition,
             body = self.body
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def visit(self, visitor : Visitor):
+    def visit(self, visitor : Visitor) -> Node:
         return visitor.visitWhileStatement(self)
 
 printType = TypeVar('printType', Literal, Variable)
@@ -183,19 +181,19 @@ class Print(Node):
     def __init__(self):
         self.value = ''
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Print({value})'.format(
             value = self.value.__repr__()
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
-    def execute(self, value : printType, visitor : Visitor):
+    def execute(self, value : printType, visitor : Visitor) -> None:
         self.value = value
         self.visit(visitor)
 
-    def visit(self, visitor : Visitor):
+    def visit(self, visitor : Visitor) -> Node:
         return visitor.visitPrint(self)
 
 # States in which the parser can be
@@ -225,7 +223,7 @@ class Parser():
         result.extend(self.__create_ast(tokens[nr_tokens:], updated_variables))
         return result
 
-    def __create_node(self, tokens : List[lexer.Token], variables : List[Variable]):
+    def __create_node(self, tokens : List[lexer.Token], variables : List[Variable]) -> Union[Node, int, List[Variable]]:
         current_head = 0
         #if current_head == VARIABLE NEXT must be ASSIGN THEN: VARIABLE || LITERAL || START || INPUT || PRINT
         if tokens[current_head].type == lexer.TokenTypes.VARIABLE.name:
@@ -244,7 +242,7 @@ class Parser():
             print("THROW ERROR Uknown starting word")
             exit()
 
-    def __create_node_VAR(self, tokens : List[lexer.Token], variables : List[Variable]):
+    def __create_node_VAR(self, tokens : List[lexer.Token], variables : List[Variable]) -> Union[Node, int, List[Variable]]:
 
         # Check if VARIABLE exists if so assign it to a variable
 
@@ -269,6 +267,8 @@ class Parser():
 
                 if not first_rhs:
                         print("THROW ERROR VARIABLE DOESNT EXISTS")
+                        quit()
+
 
                 current_head = 3
 
@@ -296,55 +296,64 @@ class Parser():
                             second_rhs = Literal(tokens[current_head].value)
 
                         if not second_rhs:
-                                print("THROW ERRO VARIABLE DOESNT EXISTS")
+                                print("THROW ERROR VARIABLE DOESNT EXISTS")
+                                quit()
 
 
                         current_head = 5
-                        prime_var = Variable(tokens[0].value, Binary(first_rhs, current_operator, second_rhs))
-                        variables.append(prime_var)
+                        if prime_var:
+                            prime_var.value = Binary(first_rhs, current_operator, second_rhs)
+                        else:
+                            prime_var = Variable(tokens[0].value, Binary(first_rhs, current_operator, second_rhs))
+                            variables.append(prime_var)
                         return prime_var, current_head, variables
 
                     else:
 
                         print("#THROW ERROR THERE MUST BE A VALUE HOLDING OBJECT AFTER A OPERATOR")
-                        return
+                        quit()
 
                 else: # Assignment
-                    prime_var = Variable(tokens[0].value, first_rhs)
-                    variables.append(prime_var)
+                    if prime_var:
+                       prime_var.value = first_rhs
+                    else:
+                        prime_var = Variable(tokens[0].value, first_rhs)
+                        variables.append(prime_var)
                     return prime_var, current_head, variables
 
             elif tokens[current_head].type == lexer.TokenTypes.PRINT.name: # Print
 
                 if not prime_var:
                     print("THROW ERROR UNKNOWN VARIABLE CANT PRINT")
+                    quit()
+
                 current_head = 3
                 return Binary(prime_var.value, lexer.TokenTypes.ASSIGN.name, Print()), current_head, variables
 
             else:
 
                 print("#THROW ERROR THERE MUST BE A VALUE HOLDING OBJECT AFTER A ASSIGNATION OR PRINT")
-                exit()
+                quit()
 
         else:
 
             print("# THROW ERROR THERE MUST BE A ASSIGNATION")
-            exit()
+            quit()
 
-    def run(self, ast : List[Node]) -> bool:
+    def run(self, ast : List[Node]) -> Union[bool]:
         # Run the ast IDEA: List of trees "roots", every tree can get visited and then we move to the next tree
         visitor = Visitor()
         return self.__execute_node(ast, visitor)
 
-    def __execute_node(self, ast : List[Node], visitor : Visitor) -> bool:
+    def __execute_node(self, ast : List[Node], visitor : Visitor) -> Union[bool]:
         if not ast:
             return True
 
         head, *tail = ast
         head.visit(visitor)
-        self.__execute_node(tail, visitor)
+        return self.__execute_node(tail, visitor)
 
-    def __find_variable(self, target : str, variables : List[Variable]):
+    def __find_variable(self, target : str, variables : List[Variable]) -> Union[Variable, bool]:
         if not variables:
             return False
 

@@ -24,6 +24,8 @@ def main():
 
     parse = parser.Parser(lex)
     ast = parse.parse()
+    for item in ast:
+        print(item,"\n")
     parse.run(ast)
 
 main()

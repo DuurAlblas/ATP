@@ -1,3 +1,8 @@
-n = 1
-m = n plus 22
+n = 10
+n = print
+m = n minus 8
+m = print
+n = 20
+n = print
+m = n plus m
 m = print

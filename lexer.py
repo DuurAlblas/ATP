@@ -31,10 +31,10 @@ class Token():
         self.value = value
         self.type = type
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Token({value}, {type})'.format(value=repr(self.value), type=self.type)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__str__()
 
 class Lexer():
@@ -100,6 +100,8 @@ class Lexer():
             elif re.match(TokenTypes.VARIABLE.value, word):
                 type = TokenTypes.VARIABLE.name
 
+
+        # REMOVE RAISE ERROR , RETURN ERROR CLASS OBJECT
             if type == None:
                 raise TypeError(word)
 
