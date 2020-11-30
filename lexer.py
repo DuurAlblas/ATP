@@ -3,6 +3,8 @@ from typing import List
 import re
 
 class TokenTypes(Enum):
+    """ Enum Class whith all types of tokens
+    """
     PLUS='plus'
     MINUS='minus'
     DIVIDE='divide'
@@ -27,6 +29,8 @@ class TokenTypes(Enum):
     VARIABLE='[a-zA-Z]'
 
 class Token():
+    """Token class to hold information about a single token
+    """
     def __init__(self, value, type):
         self.value = value
         self.type = type
@@ -38,16 +42,23 @@ class Token():
         return self.__str__()
 
 class Lexer():
+    """Lexer class to tokenize a string of code
+    """
     def __init__(self, code : str):
         self.source = code
 
     def tokenize(self) -> List[Token]:
+        """Function that will split the string so we have single words. Next call __add_tokens()
+        """
         source_code = self.source.split()
         return self.__add_tokens(source_code)
 
     def __add_tokens(self, source_code : List[str]) -> List[Token]:
+        """Private function that will recursively determine the type of token of each word using __get_token()
+        TODO MAP
+        """
         current_word, *tail = source_code
-        if len(tail) == 0:
+        if not tail:
             return [self.__get_token(current_word)]
 
         result = [self.__get_token(current_word)]
@@ -55,6 +66,9 @@ class Lexer():
         return result
 
     def __get_token(self, word : str) -> Token:
+        """Function to determine the type of token a single word is.
+        TODO Remove raise and return a custom error class
+        """
         type = None
         try:
             if word == TokenTypes.PLUS.value:

@@ -1,5 +1,6 @@
-Lambda calculus
-Object printing elke class (parser class?)
-Decorator
+Object printing elke class (parser class?) Alleen nutige
+Decorator Een functie die een functie ontvangt verijkt en returned
+Hogere functies In comments genoteerd waar mogelijk en nuttig.
 
-Wat als ik nou zo'n basis punt mis kan ik dan nog een voldoende halen door extras?
+Parser zegt alleen m word n plus 10 maar houd niet bij wat n op dat moment is.
+Interpreter houd wel bij wat n is en voert de assignments echt uit.
