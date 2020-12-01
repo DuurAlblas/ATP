@@ -1,5 +1,6 @@
-import lexer
-import parser
+from lexer import Lexer
+from parser import Parser
+from interpreter import Interpreter
 
 def readFile(filename: str) -> str:
     with open(filename) as file:
@@ -7,23 +8,19 @@ def readFile(filename: str) -> str:
 
 def main():
     code_lines = readFile("code.tet")
-    lex = lexer.Lexer(code_lines)
-    print(lex.tokenize())
+    lexer = Lexer(code_lines)
+    print(lexer.tokenize())
 
     print("=========================")
 
-    i_visit = parser.Visitor()
-
-    var_n = parser.Variable('n', parser.Literal(1))
-    var_m = parser.Variable('m', parser.Binary(var_n,lexer.TokenTypes.PLUS.name, parser.Literal(22)))
-    key_print = parser.Binary(var_m, lexer.TokenTypes.ASSIGN.name, parser.Print())
-
-    key_print.visit(i_visit)
+    parser = Parser(lexer)
+    ast = parser.parse()
+    for item in ast:
+        print(item)
 
     print("=========================")
 
-    parse = parser.Parser(lex)
-    ast = parse.parse()
-    parse.run(ast)
+    interpreter = Interpreter(ast)
+    interpreter.interpret()
 
 main()

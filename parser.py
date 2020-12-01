@@ -1,409 +1,173 @@
-from typing import TypeVar, List, Union, Tuple
-from enum import Enum
-import abc, copy
-import lexer
+from support import Node, Operators, Variable, Literal, Assignment, Operation, Print
+from lexer import Lexer, TokenTypes, Token
 
-class Node():
-    """A abstract class of which every type of node must inherit.
-    The one thing all nodes must have in common is the visit function.
-    """
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def visit(self, visitor : "Visitor") -> Union["Node", str, int, bool]:
-        """Abstract function used to retrieve the value of a node or execute certain code when a node is being "visited".
-        """
-        pass
-
-class Visitor():
-    """ The Visitor class is used to execute code that's applicable to the type of expression that is currently being "visited"
-    """
-    def visitLiteral(self, literalExpr : Node) -> Union[str,int]:
-        """This function returns the value of a node that is Literal.
-        """
-        return literalExpr.value
-
-    def visitVariable(self, variableExpr : Node) -> Node:
-        """This function recusively returns the value of a node that is a variable.
-        """
-        return variableExpr.value.visit(self)
-
-    def visitFunctionCall(self, funcExpr : Node):
-        """TODO Implement function visit to recursively visit it's body.
-        """
-        return
-
-    def visitBinary(self, binaryExpr)-> Union[str, int, bool]:
-        """This function returns the value of a node that is binary using the stored operator.
-        """
-        if binaryExpr.operator == lexer.TokenTypes.PLUS.name:
-            return binaryExpr.left.visit(self) + binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.MINUS.name:
-            return binaryExpr.left.visit(self) - binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.TIMES.name:
-            return binaryExpr.left.visit(self) * binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.DIVIDE.name:
-            return binaryExpr.left.visit(self) / binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.EQUAL.name:
-            return binaryExpr.left.visit(self) == binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.GREATER.name:
-            return binaryExpr.left.visit(self) > binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.SMALLER.name:
-            return binaryExpr.left.visit(self) < binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.NOT_EQUAL.name:
-            return binaryExpr.left.visit(self) != binaryExpr.right.visit(self)
-        elif binaryExpr.operator == lexer.TokenTypes.NOT_GREATER.name:
-            return not (binaryExpr.left.visit(self) > binaryExpr.right.visit(self))
-        elif binaryExpr.operator == lexer.TokenTypes.NOT_SMALLER.name:
-            return not (binaryExpr.left.visit(self) < binaryExpr.right.visit(self))
-        elif binaryExpr.operator == lexer.TokenTypes.ASSIGN.name:
-            if isinstance(binaryExpr.right,(Print)):
-                binaryExpr.right.execute(binaryExpr.left.visit(self), self)
-            elif isinstance(binaryExpr.left, (Variable)):
-                binaryExpr.left.value = binaryExpr.right.visit(self)
-
-    def visitIfStatement(self, ifExpr):
-        """TODO Implement If visit to recursively visit it's body.
-        """
-        return
-
-    def visitWhileStatement(self, whileExpr):
-        """TODO Implement While visit to recursively visit it's body.
-        """
-        return
-
-    def visitPrint(self, printExpr) -> None:
-        """This function prints the value to the terminal.
-        """
-        print(printExpr.value)
-
-LitType = TypeVar('LitType', int, str)
-
-class Literal(Node):
-    """The Literal class stores a integer or string type value
-    """
-    def __init__(self,value : LitType):
-        self.value = value
-
-    def __str__(self) -> str:
-        return 'Literal({value})'.format(
-            value = self.value.__repr__()
-        )
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def visit(self, visitor : Visitor) -> Node:
-        return visitor.visitLiteral(self)
-
-class Variable(Node):
-    """The Variable class stores (a) node(s) so it can later be used again.
-    """
-    def __init__(self, name : str, value = Literal(0)):
-        self.name = name
-        self.value = copy.copy(value)
-
-    def __str__(self) -> str:
-        return 'Variable({name},{value})'.format(
-            name = self.name,
-            value = self.value.__repr__()
-        )
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def visit(self, visitor : Visitor) -> Node:
-        return visitor.visitVariable(self)
-
-FunctionType = TypeVar('FunctionType', Variable, Literal)
-
-class FunctionCall(Node):
-    """TODO Implement the Function node.
-    """
-    def __init__(self, name : str, args : List[FunctionType], body):
-        self.name = name
-        self.args = args
-        self.body = body
-
-    def __str__(self) -> str:
-        return 'Function({name},{args},{body})'.format(
-            name = self.name,
-            args = self.args,
-            body = self.body
-        )
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def visit(self, visitor : Visitor) -> Node:
-        return visitor.visitFunctionCall(self)
-
-LeftBinaryType = TypeVar('LeftBinaryType', Variable, Literal)
-RightBinaryType = TypeVar('RightBinaryType', Variable, Literal, FunctionCall)
-
-class Binary(Node):
-    """ The Binary class is used to store a operation with a left and right node.
-    """
-    def __init__(self,left : LeftBinaryType , operator ,right : RightBinaryType):
-        self.left = copy.copy(left)
-        self.operator = operator
-        self.right = copy.copy(right)
-
-    def __str__(self) -> str:
-        return 'Binary({left},{operator},{right})'.format(
-            left = self.left,
-            operator = self.operator,
-            right = self.right
-        )
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def visit(self, visitor : Visitor) -> Node:
-        return visitor.visitBinary(self)
-
-class IfStatement(Node):
-    """TODO Implement the If node.
-    """
-    def __init__(self, condition : Binary, body):
-        self.condition = condition
-        self.body = body
-
-    def __str__(self) -> str:
-        return 'If({condition},{body})'.format(
-            condition = self.condition,
-            body = self.body
-        )
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def visit(self, visitor : Visitor) -> Node:
-        return visitor.visitIfStatement(self)
-
-class WhileStatement(Node):
-    """TODO Implement the Function node.
-    """
-    def __init__(self, condition : Binary, body):
-        self.condition = condition
-        self.body = body
-
-    def __str__(self) -> str:
-        return 'While({condition},{body})'.format(
-            condition = self.condition,
-            body = self.body
-        )
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def visit(self, visitor : Visitor) -> Node:
-        return visitor.visitWhileStatement(self)
-
-printType = TypeVar('printType', Literal, Variable)
-
-class Print(Node):
-    """The Print class is used to store a node that can later be printed to the user terminal.
-    """
-    def __init__(self):
-        self.value = ''
-
-    def __str__(self) -> str:
-        return 'Print({value})'.format(
-            value = self.value.__repr__()
-        )
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-    def execute(self, value : printType, visitor : Visitor) -> None:
-        self.value = value
-        self.visit(visitor)
-
-    def visit(self, visitor : Visitor) -> Node:
-        return visitor.visitPrint(self)
+from typing import List, Dict, Union, Tuple
+import copy
 
 class Parser():
-    """The Parser class is used to parse tokens made by the lexer class.
-    The class has 2 functions : parse(), run()
-    """
-    def __init__(self, lexer : lexer.Lexer):
+    def __init__(self, lexer : Lexer):
         self.lexer = lexer
 
-    def parse(self) -> List[Node]:
-        """This function parses a list of tokens created by the lexer class' tokenize() function.
-        Next the function will call __create_ast() to create the AST based on the tokens and a (empty) variable list.
-        """
+    def parse(self) -> Union[List[Node]]:
         tokens = self.lexer.tokenize()
-        return self.__create_ast(tokens, [])
+        return self.__create_ast(tokens)
 
-    def __create_ast(self, tokens : List[lexer.Token], variables : List[Variable]) -> List[Node]:
-        """This function will recursively create nodes using __create_node() and add them to a list which will be returned.
-
-        """
+    def __create_ast(self, tokens : List[Token], check_dict : Dict[Dict, Node] = dict(variables=dict(), functions=dict())) -> Union[List[Node]]:
+        results = ()
         if not tokens:
             return []
 
-        node, nr_tokens, updated_variables = self.__create_node(tokens, variables)
-        result = [node]
-        result.extend(self.__create_ast(tokens[nr_tokens:], updated_variables))
-        return result
+        if tokens[0].type == TokenTypes.VARIABLE.name:
+            results = self.__add_variable_node(tokens, check_dict)
+        elif tokens[0].type == TokenTypes.IF.name:
+            results = self.__add_if_node(tokens, check_dict)
+        # elif tokens[0].type == TokenTypes.WHILE.name:
+        #     print(tokens[0])
+        # elif tokens[0].type == TokenTypes.FUNCTION.name:
+        #     print(tokens[0])
+        # elif tokens[0].type == TokenTypes.RETURN.name:
+        #     print(tokens[0])
+        # elif tokens[0].type == TokenTypes.END.name:
+        #     print(tokens[0])
 
-    def __create_node(self, tokens : List[lexer.Token], variables : List[Variable]) -> Union[Node, int, List[Variable]]:
-        """This function creates nodes based on a list of tokens and variables.
-        First find out what kind of statement the new line will be then act on that.
-        """
+        # If error class returned
+        if len(results) == 1:
+            return results
+
+        new_node = results[0]
+        new_node.extend(self.__create_ast(results[1], results[2]))
+        return new_node
+
+    def __add_if_node(self, tokens : List[Token], check_dict : Dict[Dict, Node]):
+        updated_check_dict = copy.copy(check_dict)
+        tokens_left = len(tokens)-1
+
+        # Should be IF statement
         current_head = 0
-        current_type = tokens[current_head].type
-        #if current_head == VARIABLE NEXT must be ASSIGN THEN: VARIABLE || LITERAL || START || INPUT || PRINT
-        if current_type == lexer.TokenTypes.VARIABLE.name:
-            return self.__create_node_VAR(tokens, variables)
-        # elif current_type == lexer.TokenTypes.IF.name:
 
-        # elif current_type == lexer.TokenTypes.END.name:
-
-        # elif current_type == lexer.TokenTypes.WHILE.name:
-
-        # elif current_type == lexer.TokenTypes.FUNCTION.name:
-
-        # elif current_type == lexer.TokenTypes.RETURN.name:
-
-        else:
-            print("THROW ERROR Uknown starting word")
+        # Should be a VARIABLE
+        current_head = 1
+        if tokens[current_head].type is not TokenTypes.VARIABLE.name:
+            print("THROW ERROR AFTER IF TOKEN EXPECTED VARIABLE TOKEN")
             exit()
 
-    def __create_node_VAR(self, tokens : List[lexer.Token], variables : List[Variable]) -> Union[Node, int, List[Variable]]:
-        """This function creates a node which will assign something to a variable.
-        For example:
-        m = 10
-        n = m plus 5
-        n = print
+        # Should be a ASSIGN
+        current_head = 2
+        if tokens[current_head].type is not TokenTypes.ASSIGN.name:
+            print("THROW ERROR AFTER VARIABLE EXPECTED ASSIGN TOKEN")
+            exit()
 
-        TODO check of een variable bestaat MAAR haal hem niet op
+        # Should be a value Token
+        current_head = 3
+        allowed_types = [TokenTypes.VARIABLE.name, TokenTypes.INTEGER.name, TokenTypes.STRING.name]
+        if tokens[current_head].type not in allowed_types:
+            print("THROW ERROR THERE MUST A TOKEN THAT CAN HOLD A VALUE")
+            exit()
 
+        # Should be a comparison Token
+        current_head = 4
+        allowed_comparisons = [TokenTypes.EQUAL.name, TokenTypes.NOT_EQUAL.name, TokenTypes.GREATER.name, TokenTypes.NOT_GREATER.name, TokenTypes.SMALLER.name, TokenTypes.NOT_SMALLER.name]
+        if tokens[current_head].type not in allowed_comparisons:
+            print("THROW ERROR THERE MUST BE A VALID COMPARISON TOKEN")
+            exit()
+
+        current_head = 5
+        if tokens[current_head].type not in allowed_types:
+            print("THROW ERROR THERE MUST A TOKEN THAT CAN HOLD A VALUE")
+            exit()
+
+        # Create the IF node
+        # Call __create_ast() to start filling the body of the IF node
+        # When we encounter END IF.name stop filling body and return the filled IF node
+
+        return 0,1,2
+
+    def __add_variable_node(self, tokens : List[Token], check_dict : Dict[Dict, Node]) -> Union[Tuple[List[Node], List[Token], Dict[Dict,Node]]]:
+        """The __add_variable_node is used to create a node where a Variable object is being assigned some sort of value.
+
+        Args:
+            tokens (List[Token]): A List of Token object from which the function will gather Tokens that belong to the Assignment.
+            check_dict (Dict[Dict, Node]): A Dictionary that keeps track of existing objects. In this function it's used to determine whether a Variable exists before the user for example tries to Print it.
+
+        Returns:
+            Union[Tuple[List[Node], List[Token], Dict[Dict,Node]]]: This function returns either a Tuple containing the following objects: A List with a single Node, a List with the remaining tokens and the updated check_dict. Or a error object in case something went wrong.
         """
-        acceptable_values = [lexer.TokenTypes.VARIABLE.name, lexer.TokenTypes.INTEGER.name, lexer.TokenTypes.STRING.name]
-        acceptable_operators = [lexer.TokenTypes.PLUS.name, lexer.TokenTypes.MINUS.name, lexer.TokenTypes.TIMES.name, lexer.TokenTypes.DIVIDE.name]
-
-        # Check if VARIABLE exists if so assign it to a variable
-
-        prime_var = self.__find_variable(tokens[0].value, variables)
-        current_head = 1
-        current_type = tokens[current_head].type
-
-        if current_type == lexer.TokenTypes.ASSIGN.name:
-
-            first_rhs = False
-            current_head = 2
-            current_type = tokens[current_head].type
-
-            # if current_head == VARIABLE | INTEGER | STRING NEXT can be : TIMES, DIVIDE, PLUS, MINUS
-            if(current_type in acceptable_values):
-
-                if current_type == lexer.TokenTypes.VARIABLE.name:
-                    first_rhs = self.__find_variable(tokens[current_head].value, variables)
-                elif current_type == lexer.TokenTypes.INTEGER.name:
-                    first_rhs = Literal(int(tokens[current_head].value))
-                else:
-                    first_rhs = Literal(tokens[current_head].value)
-
-                if not first_rhs:
-                        print("THROW ERROR VARIABLE DOESNT EXISTS")
-                        quit()
-
-                current_head = 3
-                current_type = tokens[current_head].type
-                # if current_head == TIMES | DIVIDE | PLUS | MINUS NEXT can be : VARIABLE | INTEGER | STRING
-                if(current_type in acceptable_operators):
-
-                    current_operator = current_type
-                    second_rhs = False
-                    current_head = 4
-                    current_type = tokens[current_head].type
-
-                    # if current_head == VARIABLE | INTEGER | STRING there is no NEXT, eol
-                    if(current_type in acceptable_values): # Binary assignment
-
-                        # Check if VARIABLE exists if so assign it to a variable
-                        if current_type == lexer.TokenTypes.VARIABLE.name:
-                            second_rhs = self.__find_variable(tokens[current_head].value, variables)
-                        elif current_type == lexer.TokenTypes.INTEGER.name:
-                            second_rhs = Literal(int(tokens[current_head].value))
-                        else:
-                            second_rhs = Literal(tokens[current_head].value)
-
-                        if not second_rhs:
-                                print("THROW ERROR VARIABLE DOESNT EXISTS")
-                                quit()
-
-
-                        current_head = 5
-
-                        if prime_var:
-                            prime_var.value = Binary(first_rhs, current_operator, second_rhs)
-                        else:
-                            prime_var = Variable(tokens[0].value, Binary(first_rhs, current_operator, second_rhs))
-                            variables.append(prime_var)
-                        return prime_var, current_head, variables
-
-                    else:
-
-                        print("#THROW ERROR THERE MUST BE A VALUE HOLDING OBJECT AFTER A OPERATOR")
-                        quit()
-
-                else: # Assignment
-                    if prime_var:
-                       prime_var.value = first_rhs
-                    else:
-                        prime_var = Variable(tokens[0].value, first_rhs)
-                        variables.append(prime_var)
-                    return prime_var, current_head, variables
-
-            elif current_type == lexer.TokenTypes.PRINT.name: # Print
-
-                if not prime_var:
-                    print("THROW ERROR UNKNOWN VARIABLE CANT PRINT")
-                    quit()
-
-                current_head = 3
-                return Binary(prime_var.value, lexer.TokenTypes.ASSIGN.name, Print()), current_head, variables
-
-            else:
-
-                print("#THROW ERROR THERE MUST BE A VALUE HOLDING OBJECT AFTER A ASSIGNATION OR PRINT")
-                quit()
-
+        # single value assignment case : n = 1 or n = m or n = print
+        # binary operation assignment case : n = 1 + 1 or n = m + 1 or n = 1 + m
+        updated_check_dict = copy.copy(check_dict)
+        tokens_left = len(tokens)-1
+        new_variable = False
+        # Retrieved the variable or create it.
+        current_head = 0
+        if tokens[current_head].value in check_dict['variables']:
+            assignment_var = check_dict['variables'].get(tokens[current_head].value)
         else:
+            assignment_var = Variable(tokens[current_head].value)
+            check_dict['variables'][assignment_var.name] = assignment_var
+            new_variable = True
 
-            print("# THROW ERROR THERE MUST BE A ASSIGNATION")
-            quit()
+        # Check if there are tokens remaining
+        current_head = 1
+        if current_head > tokens_left:
+            print("EXPECTED MORE TOKENS")
+            exit()
 
-    def run(self, ast : List[Node]) -> Union[bool]:
-        """This function creates a Visitor and will recursively start to execute the nodes using __execute_node()
-        """
-        visitor = Visitor()
-        return self.__execute_node(ast, visitor)
+        # Make sure next token is a assignment token
+        current_type = tokens[current_head].type
+        if tokens[current_head].type is not TokenTypes.ASSIGN.name:
+            print("A ASSIGNMENT MUST TAKE PLACE")
+            exit()
 
-    def __execute_node(self, ast : List[Node], visitor : Visitor) -> Union[bool]:
-        """This function takes the first node in the AST and then "visits" it.
-        Once "visited" the function recursively calls itself to execute the rest of the nodes.
-        """
-        if not ast:
-            return True
+        # Check if there are tokens remaining
+        current_head = 2
+        if current_head > tokens_left:
+            print("EXPECTED MORE TOKENS")
+            exit()
 
-        head, *tail = ast
-        head.visit(visitor)
-        return self.__execute_node(tail, visitor)
+        # Check for a value TokenType or Print
+        current_type = tokens[current_head].type
+        allowed_types = [TokenTypes.VARIABLE.name, TokenTypes.INTEGER.name, TokenTypes.STRING.name]
+        if current_type not in allowed_types and current_type is not TokenTypes.PRINT.name:
+            print("A VALUE HOLDING OBJECT MUST COME AFTER A ASSIGNMENT OPERATOR")
+            exit()
+        elif current_type is TokenTypes.VARIABLE.name:
+            first_rhs = updated_check_dict['variables'].get(tokens[current_head].value)
+        elif current_type is TokenTypes.INTEGER.name or current_type is TokenTypes.STRING.name:
+            first_rhs = Literal(tokens[current_head].value)
+        elif current_type is TokenTypes.PRINT.name:
+            if not new_variable:
+                return [Print(assignment_var)], tokens[current_head+1:], updated_check_dict
+            else:
+                print("CANT PRINT A UNITIALIZED VARIABLE")
+                exit()
 
-    def __find_variable(self, target : str, variables : List[Variable]) -> Union[Variable, bool]:
-        """This function is used to recursively go through a list of Variables to see if the target is stored in the list.
-        TODO FILTER 
-        """
-        if not variables:
-            return False
+        # Check if there are tokens remaining
+        current_head = 3
+        if current_head > tokens_left:
+            return [Assignment(assignment_var, first_rhs)], tokens[current_head:], updated_check_dict
 
-        head, *tail = variables
-        if head.name == target:
-            return head
+        # Check for allowed operators
+        current_type = tokens[current_head].type
+        allowed_operators = [TokenTypes.PLUS.name, TokenTypes.MINUS.name, TokenTypes.DIVIDE.name, TokenTypes.TIMES.name]
+        if current_type not in allowed_operators:
+            return [Assignment(assignment_var, first_rhs)], tokens[current_head:], updated_check_dict
+        current_operator = current_type
 
-        return self.__find_variable(target, tail)
+        # Check if there are tokens remaining
+        current_head = 4
+        if current_head > tokens_left:
+            print("EXPECTED MORE TOKENS")
+            exit()
+
+        # Check for a value TokenType
+        current_type = tokens[current_head].type
+        allowed_types = [TokenTypes.VARIABLE.name, TokenTypes.INTEGER.name, TokenTypes.STRING.name]
+        if current_type not in allowed_types:
+            print("A VALUE HOLDING OBJECT MUST COME AFTER A ASSIGNMENT OPERATOR")
+            exit()
+        elif current_type is TokenTypes.VARIABLE.name:
+            second_rhs = updated_check_dict['variables'].get(tokens[current_head].value)
+        elif current_type is TokenTypes.INTEGER.name or current_type is TokenTypes.STRING.name:
+            second_rhs = Literal(tokens[current_head].value)
+
+        return [Assignment(assignment_var, Operation(first_rhs, current_operator, second_rhs))], tokens[current_head+1:], updated_check_dict

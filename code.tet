@@ -1,8 +1,7 @@
-n = 10
+n = 3
 n = print
-m = n minus 8
+m = n times 8
 m = print
 n = 20
 n = print
-m = n plus m
 m = print

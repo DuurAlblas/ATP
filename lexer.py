@@ -1,48 +1,12 @@
-from enum import Enum
-from typing import List
+# Get required support classes
+from support import Token, TokenTypes
+
+from typing import List, Union
 import re
-
-class TokenTypes(Enum):
-    """ Enum Class whith all types of tokens
-    """
-    PLUS='plus'
-    MINUS='minus'
-    DIVIDE='divide'
-    TIMES='times'
-    ASSIGN='='
-    SMALLER='<'
-    GREATER='>'
-    NOT_EQUAL='~'
-    NOT_SMALLER='~<'
-    NOT_GREATER='~>'
-    EQUAL='~~'
-    INPUT='input'
-    PRINT='print'
-    FUNCTION='function'
-    IF='if'
-    WHILE='while'
-    START='start'
-    END='end'
-    RETURN='return'
-    INTEGER='[0-9]'
-    STRING='".*"'
-    VARIABLE='[a-zA-Z]'
-
-class Token():
-    """Token class to hold information about a single token
-    """
-    def __init__(self, value, type):
-        self.value = value
-        self.type = type
-
-    def __str__(self) -> str:
-        return 'Token({value}, {type})'.format(value=repr(self.value), type=self.type)
-
-    def __repr__(self) -> str:
-        return self.__str__()
 
 class Lexer():
     """Lexer class to tokenize a string of code
+    TODO Error class
     """
     def __init__(self, code : str):
         self.source = code
@@ -53,19 +17,20 @@ class Lexer():
         source_code = self.source.split()
         return self.__add_tokens(source_code)
 
-    def __add_tokens(self, source_code : List[str]) -> List[Token]:
+    def __add_tokens(self, source_code : List[str]) -> Union[List[Token]]:
         """Private function that will recursively determine the type of token of each word using __get_token()
         TODO MAP
         """
         current_word, *tail = source_code
         if not tail:
-            return [self.__get_token(current_word)]
+            return self.__get_token(current_word)
 
-        result = [self.__get_token(current_word)]
-        result.extend(self.__add_tokens(tail))
+        result = self.__get_token(current_word)
+        if isinstance(result, (List)):
+            result.extend(self.__add_tokens(tail))
         return result
 
-    def __get_token(self, word : str) -> Token:
+    def __get_token(self, word : str) -> Union[List[Token]]:
         """Function to determine the type of token a single word is.
         TODO Remove raise and return a custom error class
         """
@@ -111,6 +76,7 @@ class Lexer():
                 type = TokenTypes.INTEGER.name
             elif re.match(TokenTypes.STRING.value, word):
                 type = TokenTypes.STRING.name
+                word = word[1:-1]
             elif re.match(TokenTypes.VARIABLE.value, word):
                 type = TokenTypes.VARIABLE.name
 
@@ -123,4 +89,4 @@ class Lexer():
             print("Couldn't find token type of ",Unknown_Type,"!")
             raise
 
-        return Token(word, type)
+        return [Token(word, type)]
