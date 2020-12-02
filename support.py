@@ -202,15 +202,50 @@ class If(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-    def addToBody(self, line : Node):
-        if self.body:
-            self.body.append(line)
-        else:
-            self.body = [line]
+    def create_body(self, body : List[Node]):
+        self.body = body
 
-    def visit(self, visitor : "Visitor", check_dict :  Dict[Dict, Node]):
+    def remaining_tokens(self):
+        return self.body[-1].get_remaining_tokens()
+
+    def updated_check_dict(self):
+        return self.body[-1].get_updated_check_dict()
+
+    def visit(self, visitor : "Visitor", check_dict :  Dict[Union[Dict, List], Node]):
         return visitor.visitIf(self, check_dict)
 
+class End(Node):
+    def __init__(self, name : str, remaining_tokens : List[Token], check_dict : Dict[Union[Dict, List], Node]):
+        self.name = name
+        self.remaining_tokens = remaining_tokens
+        self.check_dict = check_dict
+
+    def __str__(self) -> str:
+        return 'End({name})'.format(
+            name = self.name
+        )
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def get_remaining_tokens(self):
+        try:
+            tmp = copy.copy(self.remaining_tokens)
+            del self.remaining_tokens
+            return tmp
+        except:
+            return None
+
+    def get_updated_check_dict(self):
+        try:
+            tmp = copy.copy(self.check_dict)
+            del self.check_dict
+            return tmp
+        except:
+            return None
+
+    def visit(self, visitor : "Visitor", check_dict : Dict[Union[Dict, List], Node]):
+        return visitor.visitEnd(self, check_dict)
 
 #=====================================================================================#
 # Interpreter requirements
@@ -222,7 +257,7 @@ class Visitor():
     """The Visitor class is used to execute Nodes from a AST.
     """
 
-    def visitLiteral(self, literalExpr : Node, check_dict : Dict[Dict,Node]) -> Tuple[Union[str, int], Dict[Dict, Node]]:
+    def visitLiteral(self, literalExpr : Node, check_dict : Dict[Dict,Node]) -> Tuple[Union[str, int], Dict[Union[Dict, List], Node]]:
         """Visits a Literal expression and retrieve the value
 
         Args:
@@ -230,23 +265,23 @@ class Visitor():
             check_dict (Dict[Dict,Node]): A Dictionary that keeps track of existing objects. Will not be used in this function.
 
         Returns:
-            Tuple[Union[str, int], Dict[Dict, Node]]: Return a Tuple with the first index (0) always being the value of the Literal object and the second index (1) always being the check_dict
+            Tuple[Union[str, int], Dict[Union[Dict, List], Node]]: Return a Tuple with the first index (0) always being the value of the Literal object and the second index (1) always being the check_dict
         """
         return literalExpr.value, check_dict
 
-    def visitVariable(self, variableExpr : Node, check_dict : Dict[Dict, Node]) -> Tuple[Union[str, int], Dict[Dict, Node]]:
+    def visitVariable(self, variableExpr : Node, check_dict : Dict[Union[Dict, List], Node]) -> Tuple[Union[str, int], Dict[Union[Dict, List], Node]]:
         """Visits a Variable expression and retrieve the value that's being held
 
         Args:
             variableExpr (Node): A Variable object that inherits from Node
-            check_dict (Dict[Dict, Node]): A Dictionary that keeps track of existing objects. Will not be used in this function.
+            check_dict (Dict[Union[Dict, List], Node]): A Dictionary that keeps track of existing objects. Will not be used in this function.
 
         Returns:
-            Tuple[Union[str, int], Dict[Dict, Node]]: Return a Tuple with the first index (0) always being the value that the Variable object holds and the second index (1) always being the check_dict
+            Tuple[Union[str, int], Dict[Union[Dict, List], Node]]: Return a Tuple with the first index (0) always being the value that the Variable object holds and the second index (1) always being the check_dict
         """
         return variableExpr.value.visit(self, check_dict)
 
-    def visitOperation(self, operationExpr : Node, check_dict : Dict[Dict,Node]) -> Tuple[Union[str, int], Dict[Dict, Node]]:
+    def visitOperation(self, operationExpr : Node, check_dict : Dict[Dict,Node]) -> Tuple[Union[str, int], Dict[Union[Dict, List], Node]]:
         """Visits a Operation expression and executes the operation.
 
         Args:
@@ -254,15 +289,19 @@ class Visitor():
             check_dict (Dict[Dict,Node]): A Dictionary that keeps track of existing objects. Will be passed along to the left and right hand side values.
 
         Returns:
-            Tuple[Union[str, int], Dict[Dict, Node]]: Return a Tuple with the first index (0) always being the calculated value and the second index (1) being the check_dict.
+            Tuple[Union[str, int], Dict[Union[Dict, List], Node]]: Return a Tuple with the first index (0) always being the calculated value and the second index (1) being the check_dict.
         """
         lhs_result, _ = operationExpr.lhs.visit(self, check_dict)
         rhs_result, _ = operationExpr.rhs.visit(self, check_dict)
         operation_result = None
 
-        if re.match('[0-9]', lhs_result) and re.match('[0-9]', rhs_result): # Main case
+        if re.match('[0-9]', lhs_result):
             lhs_result = int(lhs_result)
+
+        if re.match('[0-9]', rhs_result):
             rhs_result = int(rhs_result)
+
+        if isinstance(lhs_result, (int)) and isinstance(rhs_result, (int)) :
             if operationExpr.operator is TokenTypes.PLUS.name:
                 operation_result = lhs_result + rhs_result
             elif operationExpr.operator is TokenTypes.MINUS.name:
@@ -280,12 +319,12 @@ class Visitor():
         return operation_result, check_dict
 
 
-    def visitAssignment(self, assignmentExpr : Node, check_dict : Dict[Dict, Node]) -> Tuple[Union[bool], Dict[Dict,Node]]:
+    def visitAssignment(self, assignmentExpr : Node, check_dict : Dict[Union[Dict, List], Node]) -> Tuple[Union[bool], Dict[Dict,Node]]:
         """Visits a Assignment expression which will assign it's right hand side value to the left hand side
 
         Args:
             assignmentExpr (Node): A Assignment object that inherits from Node
-            check_dict (Dict[Dict, Node]): A Dictionary that keeps track of existing objects. In this function we use it to retrieve the variable if it's been assigned before.
+            check_dict (Dict[Union[Dict, List], Node]): A Dictionary that keeps track of existing objects. In this function we use it to retrieve the variable if it's been assigned before.
 
         Returns:
             Tuple[Union[bool], Dict[Dict,Node]]: Return a Tuple with the first index (0) always being True if there were no errors and the second index (1) always being the check_dict
@@ -297,12 +336,12 @@ class Visitor():
         check_dict['variables'][assignmentExpr.lhs.name].value = Literal(result[0])
         return True, result[1]
 
-    def visitPrint(self, printExpr : Node, check_dict : Dict[Dict, Node]) -> Tuple[Union[bool], Dict[Dict,Node]]: # Later on Union with error class
+    def visitPrint(self, printExpr : Node, check_dict : Dict[Union[Dict, List], Node]) -> Tuple[Union[bool], Dict[Dict,Node]]: # Later on Union with error class
         """Visits a Print expression which will print the value it's holding
 
         Args:
             printExpr (Node): A Print object that inherits from Node
-            check_dict (Dict[Dict, Node]): A Dictionary that keeps track of existing objects. Will be passed along to the value it's holding.
+            check_dict (Dict[Union[Dict, List], Node]): A Dictionary that keeps track of existing objects. Will be passed along to the value it's holding.
 
         Returns:
             Tuple[Union[bool], Dict[Dict,Node]]: Return a Tuple with the first index (0) always being True if there were no errors and the second index (1) always being the check_dict
@@ -312,8 +351,57 @@ class Visitor():
         print(result[0])
         return True, result[1]
 
-    def visitIf(self, ifExpr : Node, check_dict : Dict[Dict, Node]):
-        pass
+    def visitIf(self, ifExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
+        result, _ = ifExpr.condition.visit(self, check_dict)
+        # If condition True
+        if result:
+            self.__traverse_body(ifExpr.body, check_dict)
+        #   visit body
+        # else return
+        return None, check_dict
 
-    def visitCondition(self, conditionExpr : Node, check_dict : Dict[Dict,Node]):
-        pass
+    def __traverse_body(self, body : List[Node], check_dict : Dict[Union[Dict, List], Node]) -> Union[bool]:
+        if not body:
+            return True
+
+        head, *tail = body
+        _, result = head.visit(self, check_dict)
+        return self.__traverse_body(tail, result)
+
+    def visitCondition(self, conditionExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
+        lhs_result, _ = conditionExpr.lhs.visit(self, check_dict)
+        rhs_result, _ = conditionExpr.rhs.visit(self, check_dict)
+        comparison_result = False
+
+        if re.match('[0-9]', lhs_result):
+            lhs_result = int(lhs_result)
+
+        if re.match('[0-9]', rhs_result):
+            rhs_result = int(rhs_result)
+
+        if isinstance(lhs_result, (int)) and isinstance(rhs_result, (int)) :
+            if conditionExpr.operator is TokenTypes.EQUAL.name:
+                comparison_result = lhs_result == rhs_result
+            elif conditionExpr.operator is TokenTypes.NOT_EQUAL.name:
+                comparison_result = lhs_result != rhs_result
+            elif conditionExpr.operator is TokenTypes.GREATER.name:
+                comparison_result = lhs_result > rhs_result
+            elif conditionExpr.operator is TokenTypes.NOT_GREATER.name:
+                comparison_result = not (lhs_result > rhs_result)
+            elif conditionExpr.operator is TokenTypes.SMALLER.name:
+                comparison_result = lhs_result < rhs_result
+            elif conditionExpr.operator is TokenTypes.NOT_SMALLER.name:
+                comparison_result = not (lhs_result < rhs_result)
+        elif isinstance(lhs_result, (str)) and isinstance(rhs_result, (str)):
+            if conditionExpr.operator is TokenTypes.EQUAL.name:
+                comparison_result = lhs_result == rhs_result
+            elif conditionExpr.operator is TokenTypes.NOT_EQUAL.name:
+                comparison_result = lhs_result != rhs_result
+        else:
+            print("LHS AND RHS WERE NOT OF SAME TYPE")
+            exit()
+        return comparison_result, check_dict
+
+
+    def visitEnd(self, endExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
+        return None, check_dict

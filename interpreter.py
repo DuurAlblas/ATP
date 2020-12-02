@@ -16,5 +16,6 @@ class Interpreter():
             return True
 
         head, *tail = ast
-        result = head.visit(visitor, check_dict)
-        return self.__traverse(tail, visitor, result[1])
+        # print("Current Head : ", head)
+        _, result = head.visit(visitor, check_dict)
+        return self.__traverse(tail, visitor, result)
