@@ -1,6 +1,7 @@
-n = "henk"
-if test = n ~~ 1
-n = print
-n = 1
-end if test
-n = print
+n = 4
+function double = nr
+nr = nr times 2
+return = nr
+end function double
+m = start function double n
+m = print

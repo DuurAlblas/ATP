@@ -1,0 +1,10 @@
+n = 10
+while test = n > 2
+n = print
+n = n minus 1
+if henk = n ~~ 4
+m = n times n
+m = print
+end if henk
+end while test
+n = print

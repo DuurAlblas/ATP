@@ -214,6 +214,40 @@ class If(Node):
     def visit(self, visitor : "Visitor", check_dict :  Dict[Union[Dict, List], Node]):
         return visitor.visitIf(self, check_dict)
 
+class While(Node):
+    def __init__(self, name : str, condition : Node):
+        self.name = name
+        self.condition = condition
+        self.body = None
+
+    def __str__(self) -> str:
+        if self.body:
+            return 'While({name},{condition},{body})'.format(
+                name = self.name,
+                condition = self.condition,
+                body = self.body
+            )
+        else:
+            return 'While({name},{condition})'.format(
+                name = self.name,
+                condition = self.condition
+            )
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def create_body(self, body : List[Node]):
+        self.body = body
+
+    def remaining_tokens(self):
+        return self.body[-1].get_remaining_tokens()
+
+    def updated_check_dict(self):
+        return self.body[-1].get_updated_check_dict()
+
+    def visit(self, visitor : "Visitor", check_dict :  Dict[Union[Dict, List], Node]):
+        return visitor.visitWhile(self, check_dict)
+
 class End(Node):
     def __init__(self, name : str, remaining_tokens : List[Token], check_dict : Dict[Union[Dict, List], Node]):
         self.name = name
@@ -246,6 +280,69 @@ class End(Node):
 
     def visit(self, visitor : "Visitor", check_dict : Dict[Union[Dict, List], Node]):
         return visitor.visitEnd(self, check_dict)
+
+class Function(Node):
+    def __init__(self, name : str, args : List):
+        self.name = name
+        self.args = args
+        self.body = None
+        
+    def __str__(self) -> str:
+        if self.body == None:
+            return 'Function({name},{args})'.format(
+                name = self.name,
+                args = self.args
+            )
+        else :
+            return 'Function({name},{args},{body})'.format(
+                name = self.name,
+                args = self.args,
+                body = self.body
+            )
+    def __repr__(self) ->str:
+        return self.__str__()
+        
+    def create_body(self, body : List[Node]):
+        self.body = body
+
+    def remaining_tokens(self):
+        return self.body[-1].get_remaining_tokens()
+
+    def updated_check_dict(self):
+        return self.body[-1].get_updated_check_dict()
+        
+    def visit(self, visitor : "Visitor", check_dict :  Dict[Union[Dict, List], Node]):
+        return visitor.visitFunction(self, check_dict)
+
+class Return(Node):
+    def __init__(self, value : Node):
+        self.value = value
+
+    def __str__(self) -> str:
+        return 'Return({value})'.format(
+            value = self.value
+        )
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def visit(self, visitor : "Visitor", check_dict : Dict[Dict, Node]) -> Tuple[Union[bool],Dict[Dict,Node]]:
+        return visitor.visitReturn(self, check_dict)
+
+class Start(Node):
+    def __init__(self, value : Function):
+        self.value = value
+        
+    def __str__(self) -> str:
+        return 'Start({value})'.format(
+            value = self.value
+        )
+    
+    def __repr__(self) -> str:
+        return self.__str__()
+    
+    def visit(self, visitor : "Visitor", check_dict : Dict[Dict, Node]) -> Tuple[Union[bool],Dict[Dict,Node]]:
+        return visitor.visitStart(self, check_dict)    
 
 #=====================================================================================#
 # Interpreter requirements
@@ -295,11 +392,13 @@ class Visitor():
         rhs_result, _ = operationExpr.rhs.visit(self, check_dict)
         operation_result = None
 
-        if re.match('[0-9]', lhs_result):
-            lhs_result = int(lhs_result)
-
-        if re.match('[0-9]', rhs_result):
-            rhs_result = int(rhs_result)
+        if isinstance(lhs_result, (str)):
+            if re.match('[0-9]', lhs_result):
+                lhs_result = int(lhs_result)
+                
+        if isinstance(rhs_result, (str)):        
+            if re.match('[0-9]', rhs_result):   
+                rhs_result = int(rhs_result)
 
         if isinstance(lhs_result, (int)) and isinstance(rhs_result, (int)) :
             if operationExpr.operator is TokenTypes.PLUS.name:
@@ -309,7 +408,7 @@ class Visitor():
             elif operationExpr.operator is TokenTypes.TIMES.name:
                 operation_result = lhs_result * rhs_result
             elif operationExpr.operator is TokenTypes.DIVIDE.name:
-                operation_result = lhs_result/rhs_result
+                operation_result = lhs_result / rhs_result
         elif isinstance(lhs_result, (str)) and isinstance(rhs_result, (str)) and operationExpr.operator is TokenTypes.PLUS.name: # String concatenation
             operation_result = lhs_result+rhs_result
         else:
@@ -317,7 +416,6 @@ class Visitor():
             exit()
 
         return operation_result, check_dict
-
 
     def visitAssignment(self, assignmentExpr : Node, check_dict : Dict[Union[Dict, List], Node]) -> Tuple[Union[bool], Dict[Dict,Node]]:
         """Visits a Assignment expression which will assign it's right hand side value to the left hand side
@@ -353,32 +451,58 @@ class Visitor():
 
     def visitIf(self, ifExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
         result, _ = ifExpr.condition.visit(self, check_dict)
-        # If condition True
+        result_dict = None
         if result:
-            self.__traverse_body(ifExpr.body, check_dict)
-        #   visit body
-        # else return
-        return None, check_dict
+            _, result_dict = self.__traverse_body(ifExpr.body, check_dict)
+            
+        if result_dict == None:
+            result_dict = copy.copy(check_dict)
+        return None, result_dict
+
+    def visitWhile(self, whileExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
+        result, _ = whileExpr.condition.visit(self, check_dict)
+        result_dict = None
+        if result: 
+            _, result_dict = self.__traverse_body(whileExpr.body, check_dict)
+            _, result_dict = self.visitWhile(whileExpr, result_dict)
+        
+        if result_dict == None:
+            result_dict = copy.copy(check_dict)
+        return None, result_dict
+
+    def visitFunction(self, functionExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
+        
+        return None, None
+
+    def visitReturn(self, returnExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
+        
+        return None, None
+
+    def visitStart(self, startExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
+        
+        return None, None
 
     def __traverse_body(self, body : List[Node], check_dict : Dict[Union[Dict, List], Node]) -> Union[bool]:
         if not body:
-            return True
+            return True, check_dict
 
         head, *tail = body
-        _, result = head.visit(self, check_dict)
-        return self.__traverse_body(tail, result)
+        _, result_dict = head.visit(self, check_dict)
+        return self.__traverse_body(tail, result_dict)
 
     def visitCondition(self, conditionExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
         lhs_result, _ = conditionExpr.lhs.visit(self, check_dict)
         rhs_result, _ = conditionExpr.rhs.visit(self, check_dict)
         comparison_result = False
 
-        if re.match('[0-9]', lhs_result):
-            lhs_result = int(lhs_result)
-
-        if re.match('[0-9]', rhs_result):
-            rhs_result = int(rhs_result)
-
+        if isinstance(lhs_result, (str)):
+            if re.match('[0-9]', lhs_result):
+                lhs_result = int(lhs_result)
+                
+        if isinstance(rhs_result, (str)):        
+            if re.match('[0-9]', rhs_result):   
+                rhs_result = int(rhs_result)
+            
         if isinstance(lhs_result, (int)) and isinstance(rhs_result, (int)) :
             if conditionExpr.operator is TokenTypes.EQUAL.name:
                 comparison_result = lhs_result == rhs_result
