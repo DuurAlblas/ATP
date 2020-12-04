@@ -1,4 +1,4 @@
-from support import Node, Operators, Variable, Literal, Assignment, Operation, Print, If, While, Condition, Function, Start, End
+from support import Node, Operators, Variable, Literal, Assignment, Operation, Print, If, While, Condition, Function, Start, Return, End
 from lexer import Lexer, TokenTypes, Token
 
 from typing import List, Dict, Union, Tuple
@@ -29,7 +29,6 @@ class Parser():
             results = self.__add_conditional_node(tokens, check_dict)
         elif tokens[0].type == TokenTypes.FUNCTION.name:
             results = self.__add_function_node(tokens, check_dict)
-            
         elif tokens[0].type == TokenTypes.RETURN.name:
             results = self.__add_return_node(tokens, check_dict)
         elif tokens[0].type == TokenTypes.END.name:
@@ -90,6 +89,7 @@ class Parser():
         if len(tokens) < 3:
             print("THROW ERROR EXPECTED MORE TOKENS")
         current_arg, next_arg, *tail = tokens
+
         if self.__key_exist_in_dicts(current_arg.value, [check_dict['variables'], check_dict['ifs'], check_dict['whiles'], check_dict['functions']]):
             print("THROW ERROR VARIABLE MUST BE UNIQUE")    
             exit()
@@ -120,8 +120,63 @@ class Parser():
 
         return [], check_dict
         
+    def __add_parameters(self, tokens : List[Token], check_dict  : Dict[Union[Dict, List], Node]):
+        # TODO Check for EOL by counting tokens
+        current_param, next_param, *tail = tokens
+        print("Current param : ", current_param)
+        if not self.__key_exist_in_dicts(current_param.value, [check_dict['variables'], check_dict['ifs'], check_dict['whiles'], check_dict['functions']]):
+            print("THROW ERROR VARIABLE MUST HOLD A VALUE")
+            exit()
+
+        if current_param.type is TokenTypes.VARIABLE.name:
+    
+            # If it is a VARIABLE check next_param is not ASSIGN else return no arguments
+            if next_param.type is TokenTypes.ASSIGN.name:
+                return [], check_dict
+                
+            # If it is a VARIABLE check next_param is not a keyword: IF WHILE FUNCTION END etc else return single argument
+            not_allowed = [TokenTypes.IF.name, TokenTypes.WHILE.name, TokenTypes.END.name, TokenTypes.RETURN.name, TokenTypes.FUNCTION.name]
+            if next_param.type in not_allowed:
+                param_var = Variable(current_param.value)
+                check_dict['variables'][param_var.name] = param_var
+                return [param_var], check_dict
+            
+            # If it is a VARIABLE check next_param is a VARIABLE if it is return __add_arguments
+            if next_param.type is TokenTypes.VARIABLE.name:
+                params = [Variable(current_param.value)]                
+                check_dict['variables'][params[0].name] = params[0]
+                new_arg, updated_check_dict = self.__add_parameters(tokens[1:], check_dict)
+                params.extend(new_arg)
+                return params, updated_check_dict
+
+        return [], check_dict
+
     def __add_return_node(self, tokens : List[Token], check_dict : Dict[Union[Dict, List], Node]):
-        return 1,2,3
+        updated_check_dict = copy.copy(check_dict)
+
+        #Is a RETURN Token
+        current_head = 0
+
+        #Should be a ASSIGN Token
+        current_head = 1
+        if tokens[current_head].type is not TokenTypes.ASSIGN.name:
+            print("THROW ERROR EXPECTED A ASSIGN TOKEN AFTER RETURN TOKEN")
+            exit()
+
+        #Should be a VARIABLE TOKEN TODO accept OPERATIONS AND LITERALS
+        current_head = 2
+        allowed_types = [TokenTypes.VARIABLE.name]
+        if tokens[current_head].type not in allowed_types:
+            print("THROW ERROR EXPECTED A VARIABLE TOKEN TODO OPERATIONS AND LITERALS")
+            exit()
+
+        if tokens[current_head].type is TokenTypes.VARIABLE.name:
+            if not self.__key_exist_in_dicts(tokens[current_head].value, check_dict['variables']):
+                print("THROW ERROR EXPECTED A VALUE HOLDING VARIABLE")
+
+        return_node = Return(Variable(tokens[current_head].value))
+
+        return [return_node], tokens[current_head+1:], check_dict
 
     def __add_end_node(self, tokens : List[Token], check_dict : Dict[Union[Dict, List], Node]) -> End:
         updated_check_dict = copy.copy(check_dict)
@@ -293,8 +348,12 @@ class Parser():
                 print("THROW ERROR EXPECTED VARIABLE TOKEN, NAME OF FUNCTION")
                 exit()
 
-            nr_tokens = current_head + len(updated_check_dict['functions'][tokens[current_head].value].args) + 1
-            return [Assignment(assignment_var, Start(updated_check_dict['functions'][tokens[current_head].value]))], tokens[nr_tokens:], updated_check_dict
+            #Could be parameters
+            current_head = 5
+            start_params, _ = self.__add_parameters(tokens[current_head:], updated_check_dict)
+            print("start params : ", start_params)
+            nr_tokens = current_head + len(start_params) 
+            return [Assignment(assignment_var, Start(updated_check_dict['functions'][tokens[4].value], start_params))], tokens[nr_tokens:], updated_check_dict
 
         # Check if there are tokens remaining
         current_head = 3

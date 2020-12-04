@@ -330,12 +330,14 @@ class Return(Node):
         return visitor.visitReturn(self, check_dict)
 
 class Start(Node):
-    def __init__(self, value : Function):
+    def __init__(self, value : Function, parameters : List[Node]):
         self.value = value
+        self.parameters = parameters
         
     def __str__(self) -> str:
-        return 'Start({value})'.format(
-            value = self.value
+        return 'Start({value},{parameters})'.format(
+            value = self.value,
+            parameters = self.parameters
         )
     
     def __repr__(self) -> str:
@@ -471,16 +473,32 @@ class Visitor():
         return None, result_dict
 
     def visitFunction(self, functionExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
-        
+        result_node, results_dict = self.__traverse_function_body(functionExpr.body, check_dict)
+        print("Function : ", result_node)
         return None, None
 
     def visitReturn(self, returnExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
-        
-        return None, None
+        print("Return : ", returnExpr)
+        return returnExpr.value.visit(self, check_dict)
 
     def visitStart(self, startExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
+        # TODO zipwith gebruiken
         
-        return None, None
+        results = startExpr.value.visit(self, check_dict)
+        print("Start : ", results)
+        return results
+
+    def __traverse_function_body(self, body : List[Node], check_dict : Dict[Union[Dict, List], Node]):
+        if not body:
+            return True, check_dict
+
+        head, *tail = body
+
+        if isinstance(head, (Return)):
+            return head.visit(self, check_dict)
+
+        _, result_dict = head.visit(self, check_dict)
+        return self.__traverse_function_body(tail, result_dict)
 
     def __traverse_body(self, body : List[Node], check_dict : Dict[Union[Dict, List], Node]) -> Union[bool]:
         if not body:

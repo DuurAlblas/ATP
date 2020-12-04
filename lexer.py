@@ -64,6 +64,8 @@ class Lexer():
                 type = TokenTypes.PRINT.name
             elif word == TokenTypes.FUNCTION.value:
                 type = TokenTypes.FUNCTION.name
+            elif word == TokenTypes.RETURN.value:
+                type = TokenTypes.RETURN.name
             elif word == TokenTypes.IF.value:
                 type = TokenTypes.IF.name
             elif word == TokenTypes.WHILE.value:
