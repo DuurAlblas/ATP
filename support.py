@@ -304,6 +304,15 @@ class Function(Node):
         
     def create_body(self, body : List[Node]):
         self.body = body
+        
+    def set_arguments(self, start_arguments : List[Node], check_dict : Dict[Union[Dict, List], Node]):
+        if not start_arguments:
+            return        
+        arguments = copy.copy(start_arguments)
+        current_index = len(self.args) - len(arguments)
+        current_arg, *tail = arguments
+        self.args[current_index].value = check_dict['variables'][current_arg.name].value
+        self.set_arguments(tail, check_dict)        
 
     def remaining_tokens(self):
         return self.body[-1].get_remaining_tokens()
@@ -431,7 +440,6 @@ class Visitor():
         """
         if assignmentExpr.lhs.name not in check_dict['variables']:
             check_dict['variables'][assignmentExpr.lhs.name] = assignmentExpr.lhs
-
         result = assignmentExpr.rhs.visit(self, check_dict)
         check_dict['variables'][assignmentExpr.lhs.name].value = Literal(result[0])
         return True, result[1]
@@ -474,18 +482,17 @@ class Visitor():
 
     def visitFunction(self, functionExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
         result_node, results_dict = self.__traverse_function_body(functionExpr.body, check_dict)
-        print("Function : ", result_node)
-        return None, None
+        return result_node, results_dict
 
     def visitReturn(self, returnExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
-        print("Return : ", returnExpr)
+        returnExpr.value.value = check_dict['variables'][returnExpr.value.name].value
         return returnExpr.value.visit(self, check_dict)
 
     def visitStart(self, startExpr : Node, check_dict : Dict[Union[Dict, List], Node]):
         # TODO zipwith gebruiken
-        
-        results = startExpr.value.visit(self, check_dict)
-        print("Start : ", results)
+        function_copy = copy.copy(startExpr.value)
+        function_copy.set_arguments(startExpr.parameters, check_dict)
+        results = function_copy.visit(self, check_dict)
         return results
 
     def __traverse_function_body(self, body : List[Node], check_dict : Dict[Union[Dict, List], Node]):
