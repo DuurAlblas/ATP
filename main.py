@@ -21,6 +21,6 @@ def main():
     print("=========================")
 
     interpreter = Interpreter(ast)
-    interpreter.interpret()
+    # interpreter.interpret()
 
 main()

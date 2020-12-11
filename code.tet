@@ -1,7 +1,21 @@
-n = 4
-function double = nr
-nr = nr times 2
-return = nr
-end function double
-m = start function double n
-m = print
+inputVal = 5
+function odd = m
+if e = m ~~ 0
+tmpo = 0
+return = tmpo
+end if e
+m = m minus 1
+oddr = start function even m
+return = oddr
+end function odd
+function even = n
+if o = n ~~ 0
+tmpe = 1
+return = tmpe
+end if o
+n = n minus 1
+evenr = start function odd n
+return = evenr
+end function even
+isEven = start function even inputVal
+isEven = print

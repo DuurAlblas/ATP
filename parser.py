@@ -15,7 +15,12 @@ class Parser():
     def __create_ast(self, tokens : List[Token], check_dict : Dict[Union[Dict, List], Node]) -> Union[List[Node]]:
         results = ()
         if not tokens:
+            if check_dict['functions']:
+                print(check_dict['functions'])
+                    
             return []
+
+        
 
         # print("==================================")
         # print("remaining tokens : ", tokens)
@@ -51,19 +56,23 @@ class Parser():
 
     def __add_function_node(self, tokens : List[Token], check_dict : Dict[Union[Dict, List], Node]):
         updated_check_dict = copy.copy(check_dict)
+        overwrite_function = False
         # tokens_left = len(tokens)-1 TODO check for EOL
         
         # Is a FUNCTION Token
         current_head = 0
+        
         
         # Should be a VARIABLE Token
         current_head = 1
         if tokens[current_head].type is not TokenTypes.VARIABLE.name:
             print("THROW ERROR AFTER IF TOKEN EXPECTED VARIABLE TOKEN")
             exit()
-        elif self.__key_exist_in_dicts(tokens[current_head].value, [updated_check_dict['variables'], updated_check_dict['ifs'], updated_check_dict['whiles'], updated_check_dict['functions']]):
+        elif self.__key_exist_in_dicts(tokens[current_head].value, [updated_check_dict['variables'], updated_check_dict['ifs'], updated_check_dict['whiles']]):
             print("THROW ERROR EXPECTED UNIQUE VARIABLE TOKEN AFTER IF TOKEN")
             exit()
+        elif self.__key_exist_in_dicts(tokens[current_head].value, [updated_check_dict['functions']]):
+            overwrite_function = True
             
         # Should be a ASSIGN Token
         current_head = 2
@@ -75,10 +84,15 @@ class Parser():
         current_head = 3
         arguments, updated_check_dict = self.__add_arguments(tokens[current_head:], updated_check_dict)
 
-        function_node = Function(tokens[1].value, arguments)
+        if overwrite_function:
+            function_node = updated_check_dict['functions'][tokens[1].value]
+        else:
+            function_node = Function(tokens[1].value)
+            
+        function_node.add_arguments(arguments)
         updated_check_dict['ends'].append(function_node.name)
         nr_tokens = current_head + len(arguments)
-        function_node.create_body(self.__create_ast(tokens[nr_tokens:], updated_check_dict))
+        function_node.add_body(self.__create_ast(tokens[nr_tokens:], updated_check_dict))
         remaining_tokens = function_node.remaining_tokens()
         updated_check_dict = function_node.updated_check_dict()
         updated_check_dict['functions'][function_node.name] = function_node
@@ -123,7 +137,6 @@ class Parser():
     def __add_parameters(self, tokens : List[Token], check_dict  : Dict[Union[Dict, List], Node]):
         # TODO Check for EOL by counting tokens
         current_param, next_param, *tail = tokens
-        print("Current param : ", current_param)
         if not self.__key_exist_in_dicts(current_param.value, [check_dict['variables'], check_dict['ifs'], check_dict['whiles'], check_dict['functions']]):
             print("THROW ERROR VARIABLE MUST HOLD A VALUE")
             exit()
@@ -173,6 +186,7 @@ class Parser():
         if tokens[current_head].type is TokenTypes.VARIABLE.name:
             if not self.__key_exist_in_dicts(tokens[current_head].value, check_dict['variables']):
                 print("THROW ERROR EXPECTED A VALUE HOLDING VARIABLE")
+                exit()
 
         return_node = Return(Variable(tokens[current_head].value))
 
@@ -351,8 +365,10 @@ class Parser():
             #Could be parameters
             current_head = 5
             start_params, _ = self.__add_parameters(tokens[current_head:], updated_check_dict)
-            print("start params : ", start_params)
             nr_tokens = current_head + len(start_params) 
+            if not self.__key_exist_in_dicts(tokens[4].value, [updated_check_dict['functions']]):
+                upcoming_function = Function(tokens[4].value)
+                updated_check_dict['functions'][upcoming_function.name] = upcoming_function
             return [Assignment(assignment_var, Start(updated_check_dict['functions'][tokens[4].value], start_params))], tokens[nr_tokens:], updated_check_dict
 
         # Check if there are tokens remaining

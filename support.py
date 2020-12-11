@@ -282,13 +282,22 @@ class End(Node):
         return visitor.visitEnd(self, check_dict)
 
 class Function(Node):
-    def __init__(self, name : str, args : List):
+    def __init__(self, name : str):
         self.name = name
-        self.args = args
+        self.args = None
         self.body = None
         
     def __str__(self) -> str:
-        if self.body == None:
+        if self.args == None and self.body == None:
+            return 'Function({name})'.format(
+                name = self.name
+            )
+        elif self.args == None:
+            return 'Function({name},{body})'.format(
+                name = self.name,
+                body = self.body
+            )
+        elif self.body == None:
             return 'Function({name},{args})'.format(
                 name = self.name,
                 args = self.args
@@ -302,7 +311,10 @@ class Function(Node):
     def __repr__(self) ->str:
         return self.__str__()
         
-    def create_body(self, body : List[Node]):
+    def add_arguments(self, args : List[Node]):
+        self.args = args
+        
+    def add_body(self, body : List[Node]):
         self.body = body
         
     def set_arguments(self, start_arguments : List[Node], check_dict : Dict[Union[Dict, List], Node]):
