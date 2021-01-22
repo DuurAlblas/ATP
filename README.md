@@ -27,16 +27,19 @@ Instruction | Action |
 | XY *x* *y* | Compares the values of the memory address at *x* and *y*. If the values are equal (==) execute the next instruction, if they aren't execute the instruction after that. |
 | AY *x* *y* | Compares the values of the memory address at *x* and *y*. If the value of memory address *x* is larger than the value of memory address *y* (>) execute the next instruction, if it is execute the instruction after that.|
 | BY *x* *y* | Compares the values of the memory address at *x* and *y*. If the value of memory address *x* is smaller than the value of memory address *y* (<) execute the next instruction, if it is execute the instruction after that.|
-| YA *x* *y* *z* | Multiplies the values in memory address *y* with *z* and assigns the result to memory address *x*.|
+| YA *x* *y* *z* | Multiplies the value in memory address *y* with the value in memory address *z* and assigns the result to memory address *x*.|
 | YB *x* *y* | Add the value of memory address *y* to the value on memory address *x* (*x*+=*y*)
 | YX *x* *y* | Subtract the value of memory address *y* from the value on memory address *x* (*x*-=*y*)
-| YX | Stop execution of the code. Must be placed at the end of every file.|
+| BX | Stop execution of the code. Must be placed at the end of every file.|
 
 ## Interpreter
 
 ## Compiler
 
 ## Error-handling
+Error handling is done purely on syntax level. There are checks to see whether functions have `AB` instructions and whether they are nested in eachother. Also whenever there is a `START` instruction the Lexer checks whether the supplied function identifier actualy exists.I've also implemented parameter checking. But even though there is a lot of syntax checking there is nearly no logic checking. When you've created code that's going to have undefined behavior that's on you so be vigilant when writing your code.
+
+I've created a error class named `cError`, this class can be printed and be thrown using the `.throw()` method when you throw a error the python application with immediatly exit.
 
 ## Tutorial
 
@@ -85,7 +88,7 @@ Next the same example code in Controller Code:
 |17| START 2| Call the function with identifier 2 (`even`) to determine whether the value on memory address where the memory pointer is point to is even
 |18| UP| Raise the value on memory address where the memory pointer is pointing to (1)
 |19| RB | Print the value of the memory address where the memory pointer is currently pointing to which is 1; 0 or false for a odd number, 1 or true for a even number (since 7 is odd the result would be 0)
-|20| YX| Stop execution of the code
+|20| BX | Stop execution of the code
 
 ### Loopy function
 
@@ -124,4 +127,4 @@ Next the same example code in Controller Code:
 |14| START 1 | Start the function with the identifier 1
 |15| XA 2 | Copy the value at the memory address of memory pointer 2 to the memory address where the current memory pointer is pointing to
 |16| RB | Print the value of the memory address where the memory pointer currently points to
-|17| YX | Stop execution of the code
+|17| BX | Stop execution of the code
