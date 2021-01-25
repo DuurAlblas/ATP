@@ -25,8 +25,8 @@ Instruction | Action |
 | XA *x* | Sets the value of the memory address the memory pointer is pointing to to the value of memory address *x*.|
 | XB *x* | Gets the value of the memory address the memory pointer is pointing to and places it in memory address *x*.|
 | XY *x* *y* | Compares the values of the memory address at *x* and *y*. If the values are equal (==) execute the next instruction, if they aren't execute the instruction after that. |
-| AY *x* *y* | Compares the values of the memory address at *x* and *y*. If the value of memory address *x* is larger than the value of memory address *y* (>) execute the next instruction, if it is execute the instruction after that.|
-| BY *x* *y* | Compares the values of the memory address at *x* and *y*. If the value of memory address *x* is smaller than the value of memory address *y* (<) execute the next instruction, if it is execute the instruction after that.|
+| AY *x* *y* | Compares the values of the memory address at *x* and *y*. If the value of memory address *x* is larger than the value of memory address *y* (>) execute the next instruction, if it isn't execute the instruction after that.|
+| BY *x* *y* | Compares the values of the memory address at *x* and *y*. If the value of memory address *x* is smaller than the value of memory address *y* (<) execute the next instruction, if it isn't execute the instruction after that.|
 | YA *x* *y* *z* | Multiplies the value in memory address *y* with the value in memory address *z* and assigns the result to memory address *x*.|
 | YB *x* *y* | Add the value of memory address *y* to the value on memory address *x* (*x*+=*y*)
 | YX *x* *y* | Subtract the value of memory address *y* from the value on memory address *x* (*x*-=*y*)

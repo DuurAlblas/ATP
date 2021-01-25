@@ -11,7 +11,7 @@ def readFile(filename : str) -> List[str]:
 		return list(map(lambda word: word.upper(), raw_code))
 		
 def main():
-	raw_code = readFile("sum.coco")
+	raw_code = readFile("loopy.coco")
 	printb(raw_code, "_______Raw Code_______",1)
 	lexer = Lexer(raw_code)
 	tokens_list = lexer.tokenize()
@@ -20,6 +20,7 @@ def main():
 	parsed_list = parser.parse()
 	printb(parsed_list, "_______Parsed Tokens______",1)
 	interpreter = Interpreter(parsed_list)
+	print("_______Interpreted Result_______")
 	interpreter.interpret()
 	
 main()
