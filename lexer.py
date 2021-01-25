@@ -110,7 +110,7 @@ class Lexer:
 			return self.__create_identifier_errors(unknown_identifiers)		
 		return []
 		
-	def __find_instruction_single_parameter(self, tokens: List[Union[str,int]], instruction : str) -> List[Union[]]:
+	def __find_instruction_single_parameter(self, tokens: List[Union[str,int]], instruction : str) -> List[Union[None]]:
 		"""This function tries to find the values of instructions with a single parameter.
 		It designed to find the identifiers of `BA` and `START` instructions. 
 
