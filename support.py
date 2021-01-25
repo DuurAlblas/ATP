@@ -1,12 +1,27 @@
-from typing import List, Union
+from typing import List, Union, Callable, Any
+import os
 
 from copy import deepcopy
 
+def check_existance(func : Callable[[str], Any]):
+	"""Decorator that checks if a file actually exists.
+
+	Args:
+		func (Callable[[str], Any]): A function that uses a filename.
+	"""
+	def inner(filename):
+		if not os.path.exists(filename):
+			cError("File Error: The supplied file `"+filename+"` doesn't exist").throw()
+		return func(filename)
+	return inner
+	
+@check_existance
 def readFile(filename : str) -> List[str]:
 	"""This function will read a file containing Controller Code.
 	The function will cast all the strings to upper case.
 	
 	Note that the map function is being used here which is a Higher Order Function.
+	Note that this function is decorate to check the existance of a file.
 	
 	Args:
 		filename (str): The file to read. Controller Code files have the extension .coco
@@ -16,7 +31,7 @@ def readFile(filename : str) -> List[str]:
 	"""
 	with open(filename) as file:
 		raw_code = file.read().splitlines()
-		return list(map(lambda word: word.upper(), raw_code))
+		return list(map(lambda word: word.upper(), raw_code)) #map 4/3
 
 def printb(data, symbol = "=", times = 40):
 	"""Small support function for printing results and keeping them together in a block for visibility.
@@ -29,7 +44,7 @@ def printb(data, symbol = "=", times = 40):
 	print(times * symbol)
 	print(data)
 	print(times * symbol)
-	
+		
 def cp(data):
 	"""Small support function to deepcopy anything.
 

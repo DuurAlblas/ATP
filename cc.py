@@ -1,4 +1,4 @@
-import os, sys, getopt
+import sys, getopt
 from typing import List, Union
 
 from lexer import Lexer
@@ -6,9 +6,8 @@ from parser import Parser
 from interpreter import Interpreter
 from compiler import Compiler
 from support import printb, readFile, cError
-		
+
 def main(argv):
-	
 	help_message = "Controller Code. cc.py\n"
 	help_message += "-h or --help | This help message\n -f or --file <code.coco> | A file with the .coco extension. Contains Controller Code\n -I | Use the application in Interpreter Mode (Default)\n -C | Use the application in Compiler Mode\n -v or --verbose | Print extra information\n"
 	code_file = "code.coco"
@@ -36,9 +35,6 @@ def main(argv):
 		elif option in ("-v", "--verbose"):
 			verbose = True
 	
-	if not os.path.exists(code_file):
-		cError("File Error: The supplied file `"+code_file+"` doesn't exist").throw()
-	
 	"""In the main function the following things happen in succession:
 	- Read a Controller Code file so we have a list of strings, the raw code, each line of code is 1 item in the list.
 	- Supply the raw code to the Lexer which will make 1 large list of all the tokens, it will also recognize strings that are integers and cast them to integers.
@@ -46,6 +42,7 @@ def main(argv):
 	- Supply the lexed code, tokens list, to the Parser. The Parser wil gather instructions with their parameters. At then end there will be a list of lists with strings, instructions, and where applicable inttegers, paramters.
 	- Supply the parsed code, parsed list, to the Interpreter. The Interpreter wil execute the code. Since the `BX` instruction will stop execution the application will exit when it encounters that instruction.
 	"""
+	
 	raw_code = readFile(code_file)
 	if verbose:
 		printb(raw_code, "_______Raw Code_______",1) 

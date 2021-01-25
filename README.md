@@ -8,6 +8,8 @@ In short, this language is able to do some very basic instructions like incremen
 It is important that every line of code is exactly that, 1 line of code. This is important since we have instructions like SELECT which jump to a instruction on a given line number.
 Since this language is designed with microcontrollers in mind you have a limited memory stack, I have limited the memory stack to 128 times 32 bits. If you decide to go outside that range there will be undefined behavior so make sure you don't go outside that range. Also memory address 0 is reserved for the "linker register" so it is not advised to arbitrarily change it.
 
+The language Controller Code is Turing-complete since it implements the same functionality as Brainfuck and more and Brainfuck is Turing-complete.
+
 ## Instructions
 Instruction | Action |
 |--|--|
@@ -55,8 +57,6 @@ The Compiler functionality can be used by starting the application using the `-C
 Error handling is done purely on syntax level. There are checks to see whether functions have `AB` instructions and whether they are nested in eachother. Also whenever there is a `START` instruction the Lexer checks whether the supplied function identifier actualy exists.I've also implemented parameter checking. But even though there is a lot of syntax checking there is nearly no logic checking. When you've created code that's going to have undefined behavior that's on you so be vigilant when writing your code.
 
 I've created a error class named `cError`, this class can be printed and be thrown using the `.throw()` method when you throw a error the python application with immediatly exit.
-
-## Tutorial
 
 ## Examples
 For my course I have to implement the following examples.

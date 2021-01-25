@@ -11,11 +11,13 @@ class Lexer:
 		"""The tokenize function tokenizes the raw code and return a list of strings, the instructions, and integers when applicable, the paramters.
 		After creating the lexed list the function check the syntax and if any errors are found prints them and throws the last error which exits the application.
 
+		Note that the map function is being used here which is a Higher Order Function.
+
 		Returns:
 			List[Union[str,int]]: The Lexed list of tokens
 		"""
-		lexed_string_list = self.__create_list(list(map(lambda line: line.split(), cp(self.source_code))))
-		lexed_list = list(map(lambda value: int(value) if value.lstrip("-").isnumeric() else value, lexed_string_list))
+		lexed_string_list = self.__create_list(list(map(lambda line: line.split(), cp(self.source_code)))) #map 1/3
+		lexed_list = list(map(lambda value: int(value) if value.lstrip("-").isnumeric() else value, lexed_string_list)) #map 2/3
 		errors = self.__check_syntax(cp(lexed_list))
 		errors += self.__check_start_instructions(cp(lexed_list))
 		if errors:
@@ -86,7 +88,7 @@ class Lexer:
 				head, *tail = code
 				return [cError(("Syntax Error: The instruction `"+ str(head) + "` is not supported."))] + self.__check_syntax(tail)
 			
-			if all(map(lambda parameter: isinstance(parameter,int), code[1:expected_parameters+1])):
+			if all(map(lambda parameter: isinstance(parameter,int), code[1:expected_parameters+1])): # map 3/3
 				return [] + self.__check_syntax(cp(code[1+expected_parameters:]))
 			else:
 				return [cError(("Syntax Error: "+ str(code[0]) +" parameters must be numeric."))] + self.__check_syntax(cp(code[1+expected_parameters:]))		
