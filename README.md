@@ -6,7 +6,7 @@ Feel free to expand on this project by implementing different types of controlle
 In short, this language is able to do some very basic instructions like incrementing and decrementing a byte and moving around in the memory but I've also implemented functions, several comparisons and arithmatic instructions. 
 
 It is important that every line of code is exactly that, 1 line of code. This is important since we have instructions like SELECT which jump to a instruction on a given line number.
-Since this language is designed with microcontrollers in mind you have a limited memory stack, I have limited the memory stack to 128 times 32 bits. If you decide to go outside that range there will be undefined behavior so make sure you don't go outside that range.
+Since this language is designed with microcontrollers in mind you have a limited memory stack, I have limited the memory stack to 128 times 32 bits. If you decide to go outside that range there will be undefined behavior so make sure you don't go outside that range. Also memory address 0 is reserved for the "linker register" so it is not advised to arbitrarily change it.
 
 ## Instructions
 Instruction | Action |
@@ -16,7 +16,7 @@ Instruction | Action |
 | UP | Increment the byte at the memory pointer by 1.|
 | DOWN | Decrement the byte at the memory pointer by 1.|
 | BA *x* | Create a function, requires 1 integer parameter *x* which will be the indentifier of the function. The code between 'BA *x*' and 'AB' belongs to the function. This creates a Label to Branch to.|
-| AB | Mark the end of a function. Jump back to the Link Register address.|
+| AB | Mark the end of a function. Jump back to the "linker register" address.|
 | START *x* | Start function with the identifier *x*.|
 | SELECT *x* | Jump to the instruction at line *x*.|
 | LB *x* | Sets the memory pointer to the integer *x*. Jumps to a memory address.|

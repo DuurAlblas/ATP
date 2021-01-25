@@ -2,12 +2,18 @@ from typing import TypeVar, List, Union
 from support import cp, cError, throw_errors, syntaxParametersDict
 
 class Lexer:
-	"""The Lexer class tokenizes a string with raw Controller Code.
+	"""The Lexer class tokenizes a string that contains raw Controller Code.
 	"""
 	def __init__(self, raw_code : str):
 		self.source_code = raw_code
 	
 	def tokenize(self) -> List[Union[str,int]]:
+		"""The tokenize function tokenizes the raw code and return a list of strings, the instructions, and integers when applicable, the paramters.
+		After creating the lexed list the function check the syntax and if any errors are found prints them and throws the last error which exits the application.
+
+		Returns:
+			List[Union[str,int]]: The Lexed list of tokens
+		"""
 		lexed_string_list = self.__create_list(list(map(lambda line: line.split(), cp(self.source_code))))
 		lexed_list = list(map(lambda value: int(value) if value.lstrip("-").isnumeric() else value, lexed_string_list))
 		errors = self.__check_syntax(cp(lexed_list))
@@ -17,6 +23,14 @@ class Lexer:
 		return lexed_list
 				
 	def __create_list(self, code : List[str]) -> List[str]:
+		"""This function creates one list out of a list with multiple lists inside it.
+
+		Args:
+			code (List[str]): List of lists containing strings.
+
+		Returns:
+			List[str]: One (token)list containing all the lists from the supplied list. Instructions and parameters are seperated in this list.
+		"""
 		if code:
 			head, *tail = code		
 			return head + self.__create_list(tail)
@@ -25,12 +39,12 @@ class Lexer:
 	def __check_syntax(self, code : List[Union[str,int]]) -> List[Union[cError]]:
 		"""This function checks the whole code for syntax errors.
 		If it has found any it will put them in a list.
-		The list can be used to itterate over, print every error except the last and then throw the last error which will exit the application.
+		The list can be used to itterate over, print every error except the last one and then throw the last error which will exit the application.
 		Args:
-			code (List[Union[str,int]]): [description]
-
+			code (List[Union[str,int]]): Lexed list where every instruction and parameter is seperated.
+			
 		Returns:
-			List[Union[cError]]: [description]
+			List[Union[cError]]: A list containing either nothing or 1 or more cError objects.
 		"""
 		if code:
 			expected_parameters = syntaxParametersDict.get(code[0])
@@ -79,6 +93,14 @@ class Lexer:
 		return []
 
 	def __check_start_instructions(self, tokens : List[Union[str,int]]) -> List[Union[cError]]:
+		"""This function checks whether every `START` instruction has a matching `BA` instruction.
+
+		Args:
+			tokens (List[Union[str,int]]): All of the lexed tokens in a list.
+
+		Returns:
+			List[Union[cError]]: A list containing either nothing or 1 or more cErrors.
+		"""
 		start_identifiers = self.__find_instruction_single_parameter(cp(tokens), "START")
 		ba_identifiers = self.__find_instruction_single_parameter(cp(tokens), "BA")
 		
@@ -88,7 +110,17 @@ class Lexer:
 			return self.__create_identifier_errors(unknown_identifiers)		
 		return []
 		
-	def __find_instruction_single_parameter(self, tokens: List[Union[str,int]], instruction : str):
+	def __find_instruction_single_parameter(self, tokens: List[Union[str,int]], instruction : str) -> List[Union[]]:
+		"""This function tries to find the values of instructions with a single parameter.
+		It designed to find the identifiers of `BA` and `START` instructions. 
+
+		Args:
+			tokens (List[Union[str,int]]): All of the lexed tokens in a list.
+			instruction (str): The instruction whose parameter values to find.
+
+		Returns:
+			List[Union[int]]: A list of values of the parameters of the supplied instruction.
+		"""
 		if tokens:
 			try:
 				parameter_index = tokens.index(instruction)+1
@@ -98,6 +130,14 @@ class Lexer:
 		return []
 		
 	def __create_identifier_errors(self, indentifiers : List[int]) -> List[Union[cError]]:
+		"""This function is used to recursively create a list of cErrors about identifier syntax errors.
+
+		Args:
+			indentifiers (List[int]): A List of identifiers that are being called by `START` instructions that do not have matching `BA` identifiers.
+
+		Returns:
+			List[Union[cError]]: A List of 1 or more cErrors.
+		"""
 		if indentifiers:
 			head, *tail = indentifiers
 			return [cError(("Syntax Error: START instruction with identifier `"+str(head)+"` is invalid since there is no BA with identifier `"+str(head)+"`."))] + self.__create_errors(tail)
