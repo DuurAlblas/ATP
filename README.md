@@ -32,9 +32,24 @@ Instruction | Action |
 | YX *x* *y* | Subtract the value of memory address *y* from the value on memory address *x* (*x*-=*y*)
 | BX | Stop execution of the code. Must be placed at the end of every file.|
 
+## CLI Arguments
+I have implemented CLI Arguments for ease of use. The following arguments have been implemented:
+|Argument|Explanation|
+|---|---|
+| -h or --help | Use this argument to see every argument and it's parameters.
+| -f or --file `code.coco`| By using this argument you can use a different file from `code.coco`. Note that the extension however must be `.coco`
+|-I| By using this option you specify you want to use the Interpreter functionality in stead of the Compiler functionality (This is the Default setting).
+|-C| By using this option you specify you want to use the Compiler functionality in stead of the Interpreter functionality.
+|-v or --verbose | If this option is used the application will print extra information.
+
 ## Interpreter
+The Interpreter uses a dictionary named `interpreterDict` that contains the Instructions as keywords and the actual functionality as the value. The Interpreter also uses a class name `Platform` this class simulates a microcontroller environment by having the instruction list and another list that acts as memory. By keeping track of where we are in both lists using the instruction pointer and memory pointer we can freely move throughout the memory and execute all the code. Using this dictionary and simulated platform a user can write simple (or very advanced) applications. 
+
+The Interpreter functionality can be used by starting the application using the `-I` CLI argument.
 
 ## Compiler
+
+The Compiler functionality can be used by starting the application using the `-C` CLI argument.
 
 ## Error-handling
 Error handling is done purely on syntax level. There are checks to see whether functions have `AB` instructions and whether they are nested in eachother. Also whenever there is a `START` instruction the Lexer checks whether the supplied function identifier actualy exists.I've also implemented parameter checking. But even though there is a lot of syntax checking there is nearly no logic checking. When you've created code that's going to have undefined behavior that's on you so be vigilant when writing your code.

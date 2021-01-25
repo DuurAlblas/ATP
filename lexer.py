@@ -39,7 +39,7 @@ class Lexer:
 	def __check_syntax(self, code : List[Union[str,int]]) -> List[Union[cError]]:
 		"""This function checks the whole code for syntax errors.
 		If it has found any it will put them in a list.
-		The list can be used to itterate over, print every error except the last one and then throw the last error which will exit the application.
+		The list can be used to iterate over, print every error except the last one and then throw the last error which will exit the application.
 		Args:
 			code (List[Union[str,int]]): Lexed list where every instruction and parameter is seperated.
 			
