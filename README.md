@@ -58,6 +58,33 @@ Error handling is done purely on syntax level. There are checks to see whether f
 
 I've created a error class named `cError`, this class can be printed and be thrown using the `.throw()` method when you throw a error the python application with immediatly exit.
 
+## Excercise Requirements
+As mentioned before the language Controller Code is Turing-complete since Brainfuck is to and they implemented the same basic functionalities.
+
+I have showcased loop (and also goto) functionality in the file `loopy.coco` which is explained in the section `Examples`.
+
+I have implemented lambda's throughout the whole application but a good example is the dictionary `interpreterDict` in the file `interpreter.py` on line #6.
+
+I have applied inheritance in `support.py` on line #59-#85. I have implemented the bare minimum but it is possible to create additional error types which could all be `throw()`'n. 
+
+Where usefull I have implemented object printing, for example the `cError` class can be printed which is very usefull since you would want the user to see the errors.
+
+In the file `support.py` I have implemented a decorator that checks whether the functions supplied filename actually exists. I have applied decorator function `check_existance(func : Callable[[str], Any])` on the function `readFile(filename: str)`.
+
+Every function has type annotation using the `Typing` library.
+
+I have implemented the required Higher Order Functions on the following lines:
+|File| Line # | Function|
+|---|---|---|
+|`lexer.py`|19|`map()`|
+|`lexer.py`|20|`map()`|
+|`lexer.py`|91|`map()`|
+|`support.py`|34|`map()`|
+
+My Interpreter support multiple functions in each file. When the code has been compiled you could pass parameters to the Controller Code using the R0-R3 registers. Functions can call other functions which I showcase in the section `Examples` in the `Double Recursive Function` example. Function results will be printed to the screen using a `extern "C" void print(int x)` function in the `main.cpp` when compiling or using the `print()` function of python during Interpreting, the instruction `RB` is used to print.
+
+Extra functionality I have implemented is the `cError` class used to show the user errors, the class can be found in the `support.py` on lines #59-#85. 
+
 ## Examples
 For my course I have to implement the following examples.
 

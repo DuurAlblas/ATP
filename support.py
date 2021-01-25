@@ -56,8 +56,18 @@ def cp(data):
 	"""
 	return deepcopy(data)
 	
-class cError:
-	"""A error class.
+class bareError:
+	"""A very bare frame for error classes. 
+	Could be expanded upon with code lines for example.
+	"""
+	def __str__(self):
+		pass
+
+	def throw(self):
+		pass
+	
+class cError(bareError):
+	"""A custom error class that inherits from bareError.
 	A cError can always be printed but when a cError is thrown the application will close.
 	"""
 	def __init__(self, error_string : str):

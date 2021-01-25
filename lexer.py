@@ -88,7 +88,7 @@ class Lexer:
 				head, *tail = code
 				return [cError(("Syntax Error: The instruction `"+ str(head) + "` is not supported."))] + self.__check_syntax(tail)
 			
-			if all(map(lambda parameter: isinstance(parameter,int), code[1:expected_parameters+1])): # map 3/3
+			if all(map(lambda parameter: isinstance(parameter,int), code[1:expected_parameters+1])): #map 3/3
 				return [] + self.__check_syntax(cp(code[1+expected_parameters:]))
 			else:
 				return [cError(("Syntax Error: "+ str(code[0]) +" parameters must be numeric."))] + self.__check_syntax(cp(code[1+expected_parameters:]))		
