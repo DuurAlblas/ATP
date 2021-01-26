@@ -9,13 +9,14 @@ from support import printb, readFile, cError
 
 def main(argv):
 	help_message = "Controller Code. cc.py\n"
-	help_message += "-h or --help | This help message\n -f or --file <code.coco> | A file with the .coco extension. Contains Controller Code\n -I | Use the application in Interpreter Mode (Default)\n -C | Use the application in Compiler Mode\n -v or --verbose | Print extra information\n"
+	help_message += "-h or --help | This help message\n -f or --file <code.coco> | A file with the .coco extension. Contains Controller Code\n -I | Use the application in Interpreter Mode (Default)\n -C | Use the application in Compiler Mode\n -v or --verbose | Print extra information\n -o or --output <coco.asm> | Used to specify the name of you compiled output file"
 	code_file = "code.coco"
+	asm_file = "coco.asm"
 	app_mode = 1 # Mode 1 is Interpreter, Mode 0 is Compiler
 	verbose = False
 	
 	try:
-		options, _ = getopt.getopt(argv, "hf:ICv", ["help","file=","verbose"])
+		options, _ = getopt.getopt(argv, "hf:ICvo:", ["help","file=","verbose","output="])
 	except getopt.GetoptError:
 		cError("GetoptError: Try cc.py -h or --help.").throw()
 	
@@ -27,13 +28,18 @@ def main(argv):
 			if arg.endswith(".coco"):
 				code_file = arg
 			else:
-				cError("File Error: The supplied file does not have the file extension `.coco`.").throw()
+				cError("File Error: The supplied input file does not have the file extension `.coco`.").throw()
 		elif option in ("-I"):
 			app_mode = 1
 		elif option in ("-C"):
 			app_mode = 0
 		elif option in ("-v", "--verbose"):
 			verbose = True
+		elif option in ("-o", "--output"):
+			if arg.endswith(".asm"):
+				asm_file = arg
+			else:
+				cError("File Error: The supplied output file name does not have the file extension `.asm`.").throw()
 	
 	"""In the main function the following things happen in succession:
 	- Read a Controller Code file so we have a list of strings, the raw code, each line of code is 1 item in the list.
@@ -60,8 +66,12 @@ def main(argv):
 			print("_______Interpreted Result_______") 
 		interpreter.interpret()
 	else:
-		compiler = Compiler(parsed_list)
-		compiler.compile()
+		compiler = Compiler(parsed_list, asm_file, 128)
+		compiled_code = compiler.compile()
+		if verbose:
+			print("_______Compiled Result_______")
+			print(compiled_code)
+		compiler.export(compiled_code)
 	
 if __name__ == "__main__":
 	main(sys.argv[1:])
