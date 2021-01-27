@@ -66,7 +66,7 @@ def main(argv):
 			print("_______Interpreted Result_______") 
 		interpreter.interpret()
 	else:
-		compiler = Compiler(parsed_list, asm_file, 128)
+		compiler = Compiler(parsed_list, asm_file, 64)
 		compiled_code = compiler.compile()
 		if verbose:
 			print("_______Compiled Result_______")

@@ -119,7 +119,7 @@ syntaxParametersDict = {
 	"XY":2,
 	"AY":2,
 	"BY":2,
-	"YA":3,
+	"YA":2,
 	"YB":2,
 	"YX":2,
 	"BX":0

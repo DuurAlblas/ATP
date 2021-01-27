@@ -20,7 +20,7 @@ interpreterDict = {
 	"XY" : lambda platform, memory_address_a, memory_address_b : XY(platform, memory_address_a, memory_address_b),
 	"AY" : lambda platform, memory_address_a, memory_address_b : AY(platform, memory_address_a, memory_address_b),
 	"BY" : lambda platform, memory_address_a, memory_address_b : BY(platform, memory_address_a, memory_address_b),
-	"YA" : lambda platform, memory_address_a, memory_address_b, memory_address_c : YA(platform, memory_address_a, memory_address_b, memory_address_c),
+	"YA" : lambda platform, memory_address_a, memory_address_b : YA(platform, memory_address_a, memory_address_b),
 	"YB" : lambda platform, memory_address_a, memory_address_b : YB(platform, memory_address_a, memory_address_b),
 	"YX" : lambda platform, memory_address_a, memory_address_b : YX(platform, memory_address_a, memory_address_b),
 	"BX" : lambda platform : BX(platform)
@@ -220,7 +220,7 @@ def AB(platform : Platform) -> Platform:
 	Returns:
 		Platform: A deepcopy of the state of the platform after this instruction.
 	"""
-	platform.set_address(platform.memory[0])
+	platform.set_instruction_pointer(platform.memory[0])
 	return cp(platform)
 	
 def START(platform : Platform, identifier : int) -> Platform:
@@ -386,7 +386,7 @@ def BY(platform : Platform, memory_address_a : int, memory_address_b : int) -> P
 		platform.next_instruction(2)
 	return cp(platform)
 
-def YA(platform : Platform, memory_address_a : int, memory_address_b : int, memory_address_c : int) -> Platform:
+def YA(platform : Platform, memory_address_a : int, memory_address_b : int) -> Platform:
 	"""Executes the `YA` instruction.
 	Store the result of multiplying the value of memory address b with the value of memory address c in memory address a.
 	Then move on to the next instruction.
@@ -400,7 +400,7 @@ def YA(platform : Platform, memory_address_a : int, memory_address_b : int, memo
 	Returns:
 		Platform: A deepcopy of the state of the platform after this instruction.
 	"""
-	platform.memory[memory_address_a] = platform.memory[memory_address_b] * platform.memory[memory_address_c]
+	platform.memory[memory_address_a] *= platform.memory[memory_address_b]
 	platform.next_instruction()
 	return cp(platform)
 	

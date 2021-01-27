@@ -4,43 +4,85 @@
 .global coco
 
 l_1:
-BA param 1
+f_2:
+PUSH {LR}
 l_2:
-RIGHT
+MOV R0, #1
+MOV R3, #4
+MUL R0, R0, R3
+SUB R0, R5, R0
+MOV R1, #2
+MOV R3, #4
+MUL R1, R1, R3
+SUB R1, R5, R1
+LDR R0, [R0]
+LDR R1, [R1]
+CMP R0, R1
+BEQ l_3
+BNE l_4
 l_3:
-AX param 0
+B l_18
 l_4:
-RIGHT
+LDR R0, [R4]
+SUB R0, #1
+STR R0, [R4]
 l_5:
-AX param 0
+BL f_1
 l_6:
-LB param 1
+POP {PC}
 l_7:
-XY param a 1 param b 3
+f_1:
+PUSH {LR}
 l_8:
-SELECT param 15
+MOV R0, #1
+MOV R3, #4
+MUL R0, R0, R3
+SUB R0, R5, R0
+MOV R1, #2
+MOV R3, #4
+MUL R1, R1, R3
+SUB R1, R5, R1
+LDR R0, [R0]
+LDR R1, [R1]
+CMP R0, R1
+BEQ l_9
+BNE l_10
 l_9:
-YB param a 2 param b 1
+B l_19
 l_10:
-DOWN
+LDR R0, [R4]
+SUB R0, #1
+STR R0, [R4]
 l_11:
-SELECT param 7
+BL f_2
+l_12:
+POP {PC}
 
 coco:
 PUSH {R4,R5,R6,R7,LR}
 MOV R4, SP
 MOV R5, SP
 SUB R4, #4
-SUB SP, #512
-l_12:
-AB
+SUB SP, #256
 l_13:
-AX param 5
+MOV R0, #8
+STR R0, [R4]
 l_14:
-START param 1
+SUB R4, #4
 l_15:
-XA param 2
+MOV R0, #0
+STR R0, [R4]
 l_16:
-RB
+ADD R4, #4
 l_17:
-BX
+BL f_2
+l_18:
+LDR R0, [R4]
+ADD R0, #1
+STR R0, [R4]
+l_19:
+LDR R0, [R4]
+BL print
+l_20:
+MOV SP, R5
+POP {R4,R5,R6,R7,PC}
