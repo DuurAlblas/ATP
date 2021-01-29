@@ -7,7 +7,7 @@ class Lexer:
 	def __init__(self, raw_code : str):
 		self.source_code = raw_code
 	
-	def tokenize(self) -> List[Union[str,int]]:
+	def tokenize(self, input_list : List[int]) -> List[Union[str,int]]:
 		"""The tokenize function tokenizes the raw code and return a list of strings, the instructions, and integers when applicable, the paramters.
 		After creating the lexed list the function check the syntax and if any errors are found prints them and throws the last error which exits the application.
 
@@ -18,7 +18,7 @@ class Lexer:
 		"""
 		lexed_string_list = self.__create_list(list(map(lambda line: line.split(), cp(self.source_code)))) #map 1/3
 		lexed_list = list(map(lambda value: int(value) if value.lstrip("-").isnumeric() else value, lexed_string_list)) #map 2/3
-		errors = self.__check_syntax(cp(lexed_list))
+		errors = self.__check_syntax(cp(lexed_list), cp(input_list))
 		errors += self.__check_start_instructions(cp(lexed_list))
 		if errors:
 			throw_errors(cp(errors))
@@ -38,7 +38,7 @@ class Lexer:
 			return head + self.__create_list(tail)
 		return []
 		
-	def __check_syntax(self, code : List[Union[str,int]]) -> List[Union[cError]]:
+	def __check_syntax(self, code : List[Union[str,int]], input_list : List[int]) -> List[Union[cError]]:
 		"""This function checks the whole code for syntax errors.
 		If it has found any it will put them in a list.
 		The list can be used to iterate over, print every error except the last one and then throw the last error which will exit the application.
@@ -52,46 +52,54 @@ class Lexer:
 			expected_parameters = syntaxParametersDict.get(code[0])
 			if expected_parameters == 0:
 				head, *tail = code
-				return [] + self.__check_syntax(tail)
+				return [] + self.__check_syntax(tail, cp(input_list))
 			elif expected_parameters == 1:
 				if code[0] == "BA":
 					try:
 						_ = code.index("AB")
 					except ValueError:
-						return [cError("Syntax Error: Missing a `AB` instruction to end `BA` instruction.")] + self.__check_syntax(cp(code[2:]))
+						return [cError("Syntax Error: Missing a `AB` instruction to end `BA` instruction.")] + self.__check_syntax(cp(code[2:]), cp(input_list))
 					try:
 						if code.index("BA", code.index("BA")+1, code.index("AB")):
-							return [cError("Syntax Error: BA has a nested BA this is not allowed.")] + self.__check_syntax(cp(code[2:]))
+							return [cError("Syntax Error: BA has a nested BA this is not allowed.")] + self.__check_syntax(cp(code[2:]), cp(input_list))
 					except:
 						# If .index() cannot find a nested BA that's a good thing so we just pass this exception.
 						pass
 				elif code[0] in ["SELECT","XA","XB"]:
 					try:
 						if code[1] < 1:
-							return [cError(("Syntax Error: "+ str(code[0])+" parameter cannot be 0 or less."))] + self.__check_syntax(cp(code[2:]))
+							return [cError(("Syntax Error: "+ str(code[0])+" parameter cannot be 0 or less."))] + self.__check_syntax(cp(code[2:]), cp(input_list))
 					except TypeError:
-						return [cError(("Syntax Error: "+ str(code[0]+" parameter has to be numeric.")))] + self.__check_syntax(cp(code[2:]))
+						return [cError(("Syntax Error: "+ str(code[0]+" parameter has to be numeric.")))] + self.__check_syntax(cp(code[2:]), cp(input_list))
 			elif expected_parameters == 2:
-				if code[0] in ["XY","AY","BY","YB","YX"]:
+				if code[0] == "ZL":
+					try:
+						if code[1] > len(input_list) or code[1] > 2:
+							return [cError(("Syntax Error: "+str(code[0])+ " cannot have more arguments than there are supplied with a maximum of 2."))] + self.__check_syntax(cp(code[3:]), cp(input_list))
+						elif code[1] < 1 or code[2] < 1:
+							return [cError(("Syntax Error: "+ str(code[0]) +" parameters cannot be 0 or less."))] + self.__check_syntax(cp(code[3:]), cp(input_list))
+					except:
+						return [cError(("Syntax Error: "+str(code[0])+" parameters have to be numeric."))]+ self.__check_syntax(cp(code[3:]), cp(input_list))
+				elif code[0] in ["XY","AY","BY","YB","YX"]:
 					try:
 						if code[1] < 1 or code[2] < 1:	
-							return [cError(("Syntax Error: "+ str(code[0]) +" parameters cannot be 0 or less."))] + self.__check_syntax(cp(code[3:]))
+							return [cError(("Syntax Error: "+ str(code[0]) +" parameters cannot be 0 or less."))] + self.__check_syntax(cp(code[3:]), cp(input_list))
 					except TypeError:
-						return [cError(("Syntax Error: "+str(code[0])+" parameters have to be numeric."))]+ self.__check_syntax(cp(code[3:]))
+						return [cError(("Syntax Error: "+str(code[0])+" parameters have to be numeric."))]+ self.__check_syntax(cp(code[3:]), cp(input_list))
 			elif expected_parameters == 3:
 				try:
 					if code[1] < 1 or code[2] < 1 or code[3] < 1:
-						return [cError(("Syntax Error: "+str(code[0])+" parameters cannot be 0 or less. "))]+ self.__check_syntax(cp(code[4:]))
+						return [cError(("Syntax Error: "+str(code[0])+" parameters cannot be 0 or less. "))]+ self.__check_syntax(cp(code[4:]), cp(input_list))
 				except TypeError:
-					return [cError(("Syntax Error: "+str(code[0])+" parameters have to be numeric."))]+ self.__check_syntax(cp(code[4:]))
+					return [cError(("Syntax Error: "+str(code[0])+" parameters have to be numeric."))]+ self.__check_syntax(cp(code[4:]), cp(input_list))
 			elif expected_parameters == None:
 				head, *tail = code
-				return [cError(("Syntax Error: The instruction `"+ str(head) + "` is not supported."))] + self.__check_syntax(tail)
+				return [cError(("Syntax Error: The instruction `"+ str(head) + "` is not supported."))] + self.__check_syntax(tail, cp(input_list))
 			
 			if all(map(lambda parameter: isinstance(parameter,int), code[1:expected_parameters+1])): #map 3/3
-				return [] + self.__check_syntax(cp(code[1+expected_parameters:]))
+				return [] + self.__check_syntax(cp(code[1+expected_parameters:]), cp(input_list))
 			else:
-				return [cError(("Syntax Error: "+ str(code[0]) +" parameters must be numeric."))] + self.__check_syntax(cp(code[1+expected_parameters:]))		
+				return [cError(("Syntax Error: "+ str(code[0]) +" parameters must be numeric."))] + self.__check_syntax(cp(code[1+expected_parameters:]), cp(input_list))		
 		return []
 
 	def __check_start_instructions(self, tokens : List[Union[str,int]]) -> List[Union[cError]]:

@@ -1,0 +1,90 @@
+
+.section .text
+.align 4
+.global loopysum
+
+l_1:
+f_1:
+PUSH {LR}
+l_2:
+SUB R4, #4
+l_3:
+MOV R0, #0
+STR R0, [R4]
+l_4:
+SUB R4, #4
+l_5:
+MOV R0, #0
+STR R0, [R4]
+l_6:
+MOV R0, #1
+MOV R1, #4
+MUL R0, R0, R1
+SUB R0, R5, R0
+MOV R4, R0
+l_7:
+MOV R0, #1
+MOV R3, #4
+MUL R0, R0, R3
+SUB R0, R5, R0
+MOV R1, #3
+MOV R3, #4
+MUL R1, R1, R3
+SUB R1, R5, R1
+LDR R0, [R0]
+LDR R1, [R1]
+CMP R0, R1
+BEQ l_8
+BNE l_9
+l_8:
+B l_12
+l_9:
+MOV R0, #2
+MOV R3, #4
+MUL R0, R0, R3
+SUB R0, R5, R0
+MOV R1, #1
+MOV R3, #4
+MUL R1, R1, R3
+SUB R1, R5, R1
+LDR R2, [R0]
+LDR R1, [R1]
+ADD R2, R1
+STR R2, [R0]
+l_10:
+LDR R0, [R4]
+SUB R0, #1
+STR R0, [R4]
+l_11:
+B l_7
+l_12:
+POP {PC}
+
+loopysum:
+PUSH {R4,R5,R6,R7,LR}
+MOV R4, SP
+MOV R5, SP
+SUB R4, #4
+SUB SP, #256
+l_13:
+MOV R2, #1
+MOV R3, #4
+MUL R2, R2, R3
+SUB R2, R5, R2
+STR R0, [R2]
+l_14:
+BL f_1
+l_15:
+MOV R0, #2
+MOV R3, #4
+MUL R0, R0, R3
+SUB R0, R5, R0
+LDR R1, [R0]
+STR R1, [R4]
+l_16:
+LDR R0, [R4]
+BL print
+l_17:
+LDR R0, [R4]
+MOV SP, R5
+POP {R4,R5,R6,R7,PC}

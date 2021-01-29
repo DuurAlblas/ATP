@@ -6,7 +6,7 @@ Feel free to expand on this project by implementing different types of controlle
 In short, this language is able to do some very basic instructions like incrementing and decrementing a byte and moving around in the memory but I've also implemented functions, several comparisons and arithmatic instructions. 
 
 It is important that every line of code is exactly that, 1 line of code. This is important since we have instructions like SELECT which jump to a instruction on a given line number.
-Since this language is designed with microcontrollers in mind you have a limited memory stack, I have limited the memory stack to 128 times 32 bits. If you decide to go outside that range there will be undefined behavior so make sure you don't go outside that range. Also memory address 0 is reserved for the "linker register" so it is not advised to arbitrarily change it.
+Since this language is designed with microcontrollers in mind you have a limited memory stack, I have limited the memory stack to 64 times 32 bits. If you decide to go outside that range there will be undefined behavior so make sure you don't go outside that range, or define your own range when creating a Compiler object.
 
 The language Controller Code is Turing-complete since it implements the same functionality as Brainfuck and more and Brainfuck is Turing-complete.
 
@@ -21,6 +21,7 @@ Instruction | Action |
 | AB | Mark the end of a function. Jump back to the "linker register" address.|
 | START *x* | Start function with the identifier *x*.|
 | SELECT *x* | Jump to the instruction at line *x*.|
+| ZL *x* *y* | Store the *x*th argument with a maximum of 2 in memory address *y*.|
 | LB *x* | Sets the memory pointer to the integer *x*. Jumps to a memory address.|
 | RB | Print the value of the address where the memory pointer currently points to (to use this functionality when compiling the `main.cpp` requires a : `extern "C" void print(int x)` function) |
 | AX *x* | Sets the value of integer *x* on the memory address where the memory pointer is pointing to.|
@@ -29,9 +30,9 @@ Instruction | Action |
 | XY *x* *y* | Compares the values of the memory address at *x* and *y*. If the values are equal (==) execute the next instruction, if they aren't execute the instruction after that. |
 | AY *x* *y* | Compares the values of the memory address at *x* and *y*. If the value of memory address *x* is larger than the value of memory address *y* (>) execute the next instruction, if it isn't execute the instruction after that.|
 | BY *x* *y* | Compares the values of the memory address at *x* and *y*. If the value of memory address *x* is smaller than the value of memory address *y* (<) execute the next instruction, if it isn't execute the instruction after that.|
-| YA *x* *y* *z* | Multiplies the value in memory address *y* with the value in memory address *z* and assigns the result to memory address *x*.|
-| YB *x* *y* | Add the value of memory address *y* to the value on memory address *x* (*x*+=*y*)
-| YX *x* *y* | Subtract the value of memory address *y* from the value on memory address *x* (*x*-=*y*)
+| YA *x* *y* | Multiplies the value in memory address *x* with the value in memory address *y* and assigns the result to memory address *x* (*x* \*= *y*).|
+| YB *x* *y* | Add the value of memory address *y* to the value on memory address *x* (*x*+=*y*).|
+| YX *x* *y* | Subtract the value of memory address *y* from the value on memory address *x* (*x*-=*y*).|
 | BX | Stop execution of the code. Must be placed at the end of every file.|
 
 ## CLI Arguments
@@ -39,17 +40,20 @@ I have implemented CLI Arguments for ease of use. The following arguments have b
 |Argument|Explanation|
 |---|---|
 | -h or --help | Use this argument to see every argument and it's parameters.
-| -f or --file `code.coco`| By using this argument you can use a different file from `code.coco`. Note that the extension however must be `.coco`
+| -f or --file `code.coco`| By using this argument you can use a different file from `code.coco`. Note that the extension however must be `.coco`. If you use this option with the `-C` option the output file wil be the same file name except `.coco` is replaced by `.asm`. Using the `-o` option wil override this.
+| -i or --input `int,int` | When you use the `ZL` instruction the application expects input from this option. The input integers must be `,` sepperated.
 |-I| By using this option you specify you want to use the Interpreter functionality in stead of the Compiler functionality (This is the Default setting).
 |-C| By using this option you specify you want to use the Compiler functionality in stead of the Interpreter functionality.
 |-v or --verbose | If this option is used the application will print extra information.
+|-o or --ouput `code.asm` | Use this option to change the output `.asm` file name.
 
 ## Interpreter
-The Interpreter uses a dictionary named `interpreterDict` that contains the Instructions as keywords and the actual functionality as the value. The Interpreter also uses a class name `Platform` this class simulates a microcontroller environment by having the instruction list and another list that acts as memory. By keeping track of where we are in both lists using the instruction pointer and memory pointer we can freely move throughout the memory and execute all the code. Using this dictionary and simulated platform a user can write simple (or very advanced) applications. 
+The Interpreter uses a dictionary named `interpreterDict` that contains the Instructions as keywords and the actual functionality as the value. The Interpreter also uses a class name `Platform` this class simulates a microcontroller environment by having the instruction list and another list that acts as memory. By keeping track of where we are in both lists using the instruction pointer and memory pointer we can freely move throughout the memory and execute all the code. Using this dictionary and simulated platform a user can write simple (or very advanced) applications.
 
 The Interpreter functionality can be used by starting the application using the `-I` CLI argument.
 
 ## Compiler
+The Compiler uses a dictionary named `compilerDict` that contains the Instrucitons as keywords and the actual functionality as the value, the same way the Interpreter does. All these instructions will generate strings with assembly code. The `Compiler.compile()` function wil return a single string containing all the instructions from the Controller Code that was supplied. Using the `Compiler.export()` function you can export the string to a `.asm` file. The Compiler wil add a label to each block of assembly that corresponds to a single line in Controller Code. These labels are used to jump around to line numbers in Controller Code.
 
 The Compiler functionality can be used by starting the application using the `-C` CLI argument.
 
@@ -76,10 +80,12 @@ Every function has type annotation using the `Typing` library.
 I have implemented the required Higher Order Functions on the following lines:
 |File| Line # | Function|
 |---|---|---|
+|`cc.py`|34|`map()`|
 |`lexer.py`|19|`map()`|
 |`lexer.py`|20|`map()`|
 |`lexer.py`|91|`map()`|
 |`support.py`|34|`map()`|
+|`compiler.py`|394|`map()`|
 
 My Interpreter support multiple functions in each file. When the code has been compiled you could pass parameters to the Controller Code using the R0-R3 registers. Functions can call other functions which I showcase in the section `Examples` in the `Double Recursive Function` example. Function results will be printed to the screen using a `extern "C" void print(int x)` function in the `main.cpp` when compiling or using the `print()` function of python during Interpreting, the instruction `RB` is used to print.
 
@@ -119,10 +125,10 @@ Next the same example code in Controller Code:
 |6 | AB| End of the function with identifier 2
 |7 | BA 1| Create a function with the identifier 1 (this is the `odd` function)
 |8 | XY 1 2| Compare the value in memory address 1 to the value in memory addres 2
-|9 | SELECT 19| If they are equal go to line 19
+|9 | SELECT 12| If they are equal go to line 12
 |10| DOWN| Else lower the value on the memory address where the memory pointer is pointing to (1) 
 |11| START 2| Start the function with identifier 2
-|12| AB| End of the function with identifier 1
+|12| AB| End of the function with identifier 1 return to where you were called
 |13| AX 7| Set the value of the memory address the memory pointer (1) is pointing to to the value 7 (we want to know if 7 is even or odd)
 |14| RIGHT| Increase the memory pointer by 1
 |15| AX 0| Set the value of the memory address the memory pointer (2) is pointing to to the value 0

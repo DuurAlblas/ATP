@@ -45,7 +45,7 @@ def printb(data, symbol = "=", times = 40):
 	print(data)
 	print(times * symbol)
 		
-def cp(data):
+def cp(data : Any) -> Any:
 	"""Small support function to deepcopy anything.
 
 	Args:
@@ -111,6 +111,7 @@ syntaxParametersDict = {
 	"AB":0,
 	"START":1,
 	"SELECT":1,
+	"ZL":2,
 	"LB":1,
 	"RB":0,
 	"AX":1,
@@ -124,3 +125,21 @@ syntaxParametersDict = {
 	"YX":2,
 	"BX":0
 }
+
+def getAddress(memory_address : int, target_register : str) -> str:
+	"""This fucntion is used by the Compiler to find the correct address.
+	It does this using the Stack Pointer that should be stored in R5. 
+	WARNING! R3 will always be overwritten by this function.
+
+	Args:
+		memory_address (int): The target memory address.
+		target_register (str): The Register in which the correct address will be stored.
+
+	Returns:
+		str: The instructions to get the correct memory address.
+	"""
+	move_address		= "\nMOV "+target_register+", #"+str(memory_address)
+	move_multiplier 	= "\nMOV R3, #4"
+	calculate_address 	= "\nMUL "+target_register+", "+target_register+", R3"
+	adjust_address 		= "\nSUB "+target_register+", R5, "+target_register
+	return move_address + move_multiplier + calculate_address + adjust_address

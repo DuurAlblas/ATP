@@ -12,6 +12,7 @@ interpreterDict = {
 	"AB" : lambda platform : AB(platform),
 	"START" : lambda platform , identifier : START(platform, identifier),
 	"SELECT" : lambda platform, line : SELECT(platform, line),
+	"ZL" : lambda platform, argument, memory_address : ZL(platform, argument, memory_address),
 	"LB" : lambda platform, address : LB(platform, address),
 	"RB" : lambda platform : RB(platform),
 	"AX" : lambda platform, value : AX(platform, value),
@@ -31,18 +32,22 @@ class Platform:
 	It has its own memory, instruction list and pointers to both.
 	It also has many "quality of life" functions.
 	"""
-	def __init__(self, instructions : List[List[Union[str,int]]], memory : List[int], instruction_pointer : int, memory_pointer : int):
+	def __init__(self, instructions : List[List[Union[str,int]]], memory : List[int], instruction_pointer : int, memory_pointer : int, input_list : List[int]):
 		self.instructions = instructions
 		self.memory = memory
 		self.instruction_pointer = instruction_pointer
 		self.memory_pointer = memory_pointer
+		self.input = input_list
+		self.function_call_stack = []
 
 	def __str__(self):
-		return "Platform({instructions},\n{memory},\n{instruction_pointer},\n{memory_pointer})".format(
+		return "Platform({instructions},\n{memory},\n{instruction_pointer},\n{memory_pointer},\n{input},\n{call_stack})".format(
 			instructions = self.instructions,
 			memory = self.memory,
 			instruction_pointer = self.instruction_pointer,
-			memory_pointer = self.memory_pointer
+			memory_pointer = self.memory_pointer,
+			input = self.input,
+			call_stack = self.function_call_stack
 		)
 
 	def next_instruction(self, step = 1):
@@ -88,12 +93,20 @@ class Platform:
 		self.memory_pointer = address
 
 	def set_linker(self, instruction : int):
-		"""This function will set the linker register value in memory address 0.
+		"""This function will set the linker register value at then end of the function_call_stack.
 
 		Args:
 			instruction (int): The line number of the instruction you want to store in the linker address.
 		"""
-		self.memory[0] = instruction
+		self.function_call_stack.append(instruction)
+
+	def get_linker(self) -> int:
+		"""This function will return the most recently added value from the function_call_stack.
+
+		Returns:
+			(int): The last value that was added to the function_call_stack.
+		"""
+		return self.function_call_stack.pop()
 
 	def increase_byte(self):
 		"""This function wil increase the byte the memory pointer is pointing to by 1.
@@ -113,14 +126,14 @@ class Interpreter:
 		self.tokens = parsed_tokens
 		self.memory_size = memory_size
 		
-	def interpret(self):
+	def interpret(self, input_list : List[int] = []):
 		"""This function can be called to start the execution process.
 		It first creates a simulated memory stack to use and then created the platform "on" which we will execute all the code.
 		Note that the platforms memory pointer is initialized on 1 since 0 is reserved for the linker pointer.
 		WARNING: This function is not supposed to ever end. The code has been check and should contain a `BX` instruction which will immediatly close the application.
 		"""
 		simulated_memory = [0] * self.memory_size
-		platform = Platform(self.tokens, simulated_memory, 0, 1)
+		platform = Platform(self.tokens, simulated_memory, 0, 1, input_list)
 		self.__execute(platform)
 		
 	def __execute(self, platform : Platform):
@@ -220,7 +233,7 @@ def AB(platform : Platform) -> Platform:
 	Returns:
 		Platform: A deepcopy of the state of the platform after this instruction.
 	"""
-	platform.set_instruction_pointer(platform.memory[0])
+	platform.set_instruction_pointer(platform.get_linker())
 	return cp(platform)
 	
 def START(platform : Platform, identifier : int) -> Platform:
@@ -251,6 +264,23 @@ def SELECT(platform : Platform, line : int) -> Platform:
 		Platform: A deepcopy of the state of the platform after this instruction.
 	"""
 	platform.set_instruction_pointer(line -1) # WARNING: For the offset -1
+	return cp(platform)
+	
+def ZL(platform : Platform, argument : int, memory_address : int) -> Platform:
+	"""Executes the `ZL` instruction.
+	Store the supplied input argument in the supplied memory address.
+	WARNING! The argument parameter only accepts 1 and 2, anything else will produce undefined behavior.
+
+	Args:
+		platform (Platform): The state of the platform.
+		argument (int): The input argument you want to store.
+		memory_address (int): The memory address in which you want to store the input argument.
+
+	Returns:
+		Platform: A deepcopy of the state of the platform after this instruction.
+	"""
+	platform.memory[memory_address] = platform.input[argument-1]
+	platform.next_instruction()
 	return cp(platform)
 	
 def LB(platform : Platform, address : int) -> Platform:
